@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>graphify - graphify-out/graph.html</title>
+<script src="https://unpkg.com/vis-network@9.1.6/standalone/umd/vis-network.min.js"
+        integrity="sha384-Ux6phic9PEHJ38YtrijhkzyJ8yQlH8i/+buBR8s3mAZOJrP1gwyvAcIYl3GWtpX1"
+        crossorigin="anonymous"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0f0f1a; color: #e0e0e0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; display: flex; height: 100vh; overflow: hidden; }
+  #graph { flex: 1; }
+  #sidebar { width: 280px; background: #1a1a2e; border-left: 1px solid #2a2a4e; display: flex; flex-direction: column; overflow: hidden; }
+  #search-wrap { padding: 12px; border-bottom: 1px solid #2a2a4e; }
+  #search { width: 100%; background: #0f0f1a; border: 1px solid #3a3a5e; color: #e0e0e0; padding: 7px 10px; border-radius: 6px; font-size: 13px; outline: none; }
+  #search:focus { border-color: #4E79A7; }
+  #search-results { max-height: 140px; overflow-y: auto; padding: 4px 12px; border-bottom: 1px solid #2a2a4e; display: none; }
+  .search-item { padding: 4px 6px; cursor: pointer; border-radius: 4px; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .search-item:hover { background: #2a2a4e; }
+  #info-panel { padding: 14px; border-bottom: 1px solid #2a2a4e; min-height: 140px; }
+  #info-panel h3 { font-size: 13px; color: #aaa; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em; }
+  #info-content { font-size: 13px; color: #ccc; line-height: 1.6; }
+  #info-content .field { margin-bottom: 5px; }
+  #info-content .field b { color: #e0e0e0; }
+  #info-content .empty { color: #555; font-style: italic; }
+  .neighbor-link { display: block; padding: 2px 6px; margin: 2px 0; border-radius: 3px; cursor: pointer; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border-left: 3px solid #333; }
+  .neighbor-link:hover { background: #2a2a4e; }
+  #neighbors-list { max-height: 160px; overflow-y: auto; margin-top: 4px; }
+  #legend-wrap { flex: 1; overflow-y: auto; padding: 12px; }
+  #legend-wrap h3 { font-size: 13px; color: #aaa; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .legend-item { display: flex; align-items: center; gap: 8px; padding: 4px 0; cursor: pointer; border-radius: 4px; font-size: 12px; }
+  .legend-item:hover { background: #2a2a4e; padding-left: 4px; }
+  .legend-item.dimmed { opacity: 0.35; }
+  .legend-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+  .legend-label { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .legend-count { color: #666; font-size: 11px; }
+  #stats { padding: 10px 14px; border-top: 1px solid #2a2a4e; font-size: 11px; color: #555; }
+  #legend-controls { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; padding: 4px 0; }
+  #legend-controls label { display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 12px; color: #aaa; user-select: none; }
+  #legend-controls label:hover { color: #e0e0e0; }
+  .legend-cb, #select-all-cb { appearance: none; -webkit-appearance: none; width: 14px; height: 14px; border: 1.5px solid #3a3a5e; border-radius: 3px; background: #0f0f1a; cursor: pointer; position: relative; flex-shrink: 0; }
+  .legend-cb:checked, #select-all-cb:checked { background: #4E79A7; border-color: #4E79A7; }
+  .legend-cb:checked::after, #select-all-cb:checked::after { content: ''; position: absolute; left: 3.5px; top: 1px; width: 4px; height: 7px; border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+  #select-all-cb:indeterminate { background: #4E79A7; border-color: #4E79A7; }
+  #select-all-cb:indeterminate::after { content: ''; position: absolute; left: 2px; top: 5px; width: 8px; height: 2px; background: #fff; border: none; transform: none; }
+</style>
+</head>
+<body>
+<div id="graph"></div>
+<div id="sidebar">
+  <div id="search-wrap">
+    <input id="search" type="text" placeholder="Search nodes..." autocomplete="off">
+    <div id="search-results"></div>
+  </div>
+  <div id="info-panel">
+    <h3>Node Info</h3>
+    <div id="info-content"><span class="empty">Click a node to inspect it</span></div>
+  </div>
+  <div id="legend-wrap">
+    <h3>Communities</h3>
+    <div id="legend-controls">
+      <label><input type="checkbox" id="select-all-cb" checked onchange="toggleAllCommunities(!this.checked)">Select All</label>
+    </div>
+    <div id="legend"></div>
+  </div>
+  <div id="stats">71 nodes &middot; 112 edges &middot; 8 communities</div>
+</div>
+<script>
+const RAW_NODES = [{"id": "src_engine_gemini_reasoning_geminireasoningengine", "label": "GeminiReasoningEngine", "color": {"background": "#F28E2B", "border": "#F28E2B", "highlight": {"background": "#ffffff", "border": "#F28E2B"}}, "size": 22.3, "font": {"size": 12, "color": "#ffffff"}, "title": "GeminiReasoningEngine", "community": 1, "community_name": "BRICS Basin Analysis", "source_file": "src/engine/gemini_reasoning.js", "file_type": "code", "degree": 9}, {"id": "src_engine_report_generator_reportgenerator", "label": "ReportGenerator", "color": {"background": "#F28E2B", "border": "#F28E2B", "highlight": {"background": "#ffffff", "border": "#F28E2B"}}, "size": 16.8, "font": {"size": 12, "color": "#ffffff"}, "title": "ReportGenerator", "community": 1, "community_name": "BRICS Basin Analysis", "source_file": "src/engine/report_generator.js", "file_type": "code", "degree": 5}, {"id": "src_main_resilicoastapp", "label": "ResiliCoastApp", "color": {"background": "#E15759", "border": "#E15759", "highlight": {"background": "#ffffff", "border": "#E15759"}}, "size": 40.0, "font": {"size": 12, "color": "#ffffff"}, "title": "ResiliCoastApp", "community": 2, "community_name": "ResiliCoast Application", "source_file": "src/main.js", "file_type": "code", "degree": 22}, {"id": "src_engine_surge_physics_surgephysicsengine", "label": "SurgePhysicsEngine", "color": {"background": "#76B7B2", "border": "#76B7B2", "highlight": {"background": "#ffffff", "border": "#76B7B2"}}, "size": 20.9, "font": {"size": 12, "color": "#ffffff"}, "title": "SurgePhysicsEngine", "community": 3, "community_name": "Surge Physics Engine", "source_file": "src/engine/surge_physics.js", "file_type": "code", "degree": 8}, {"id": "src_engine_advisory_dispatcher_advisorydispatcher", "label": "AdvisoryDispatcher", "color": {"background": "#EDC948", "border": "#EDC948", "highlight": {"background": "#ffffff", "border": "#EDC948"}}, "size": 19.5, "font": {"size": 12, "color": "#ffffff"}, "title": "AdvisoryDispatcher", "community": 5, "community_name": "Advisory Dispatch System", "source_file": "src/engine/advisory_dispatcher.js", "file_type": "code", "degree": 7}, {"id": "vite_config_manualchunks", "label": "manualChunks()", "color": {"background": "#4E79A7", "border": "#4E79A7", "highlight": {"background": "#ffffff", "border": "#4E79A7"}}, "size": 11.4, "font": {"size": 0, "color": "#ffffff"}, "title": "manualChunks()", "community": 0, "community_name": "Project Configuration", "source_file": "vite.config.js", "file_type": "code", "degree": 1}, {"id": "src_engine_gemini_reasoning_geminireasoningengine_buildprompt", "label": ".buildPrompt()", "color": {"background": "#F28E2B", "border": "#F28E2B", "highlight": {"background": "#ffffff", "border": "#F28E2B"}}, "size": 12.7, "font": {"size": 0, "color": "#ffffff"}, "title": ".buildPrompt()", "community": 1, "community_name": "BRICS Basin Analysis", "source_file": "src/engine/gemini_reasoning.js", "file_type": "code", "degree": 2}, {"id": "src_engine_gemini_reasoning_geminireasoningengine_callgeminiapi", "label": ".callGeminiApi()", "color": {"background": "#F28E2B", "border": "#F28E2B", "highlight": {"background": "#ffffff", "border": "#F28E2B"}}, "size": 12.7, "font": {"size": 0, "color": "#ffffff"}, "title": ".callGeminiApi()", "community": 1, "community_name": "BRICS Basin Analysis", "source_file": "src/engine/gemini_reasoning.js", "file_type": "code", "degree": 2}, {"id": "src_engine_gemini_reasoning_geminireasoningengine_constructor", "label": ".constructor()", "color": {"background": "#F28E2B", "border": "#F28E2B", "highlight": {"background": "#ffffff", "border": "#F28E2B"}}, "size": 11.4, "font": {"size": 0, "color": "#ffffff"}, "title": ".constructor()", "community": 1, "community_name": "BRICS Basin Analysis", "source_file": "src/engine/gemini_reasoning.js", "file_type": "code", "degree": 1}, {"id": "src_engine_gemini_reasoning_geminireasoningengine_generatesimulatedreasoning", "label": ".generateSimulatedReasoning()", "color": {"background": "#F28E2B", "border": "#F28E2B", "highlight": {"background": "#ffffff", "border": "#F28E2B"}}, "size": 12.7, "font": {"size": 0, "color": "#ffffff"}, "title": ".generateSimulatedReasoning()", "community": 1, "community_name": "BRICS Basin Analysis", "source_file": "src/engine/gemini_reasoning.js", "file_type": "code", "degree": 2}, {"id": "src_engine_gemini_reasoning_geminireasoningengine_runmultimodalanalysis", "label": ".runMultimodalAnalysis()", "color": {"background": "#F28E2B", "border": "#F28E2B", "highlight": {"background": "#ffffff", "border": "#F28E2B"}}, "size": 15.5, "font": {"size": 12, "color": "#ffffff"}, "title": ".runMultimodalAnalysis()", "community": 1, "community_name": "BRICS Basin Analysis", "source_file": "src/engine/gemini_reasoning.js", "file_type": "code", "degree": 4}, {"id": "src_engine_gemini_reasoning_geminireasoningengine_setapikey", "label": ".setApiKey()", "color": {"background": "#F28E2B", "border": "#F28E2B", "highlight": {"background": "#ffffff", "border": "#F28E2B"}}, "size": 11.4, "font": {"size": 0, "color": "#ffffff"}, "title": ".setApiKey()", "community": 1, "community_name": "BRICS Basin Analysis", "source_file": "src/engine/gemini_reasoning.js", "file_type": "code", "degree": 1}, {"id": "src_engine_report_generator_reportgenerator_downloadreport", "label": ".downloadReport()", "color": {"background": "#F28E2B", "border": "#F28E2B", "highlight": {"background": "#ffffff", "border": "#F28E2B"}}, "size": 11.4, "font": {"size": 0, "color": "#ffffff"}, "title": ".downloadReport()", "community": 1, "community_name": "BRICS Basin Analysis", "source_file": "src/engine/report_generator.js", "file_type": "code", "degree": 1}, {"id": "src_engine_report_generator_reportgenerator_generatesitrep", "label": ".generateSitrep()", "color": {"background": "#F28E2B", "border": "#F28E2B", "highlight": {"background": "#ffffff", "border": "#F28E2B"}}, "size": 11.4, "font": {"size": 0, "color": "#ffffff"}, "title": ".generateSitrep()", "community": 1, "community_name": "BRICS Basin Analysis", "source_file": "src/engine/report_generator.js", "file_type": "code", "degree": 1}, {"id": "src_main_resilicoastapp_constructor", "label": ".constructor()", "color": {"background": "#E15759", "border": "#E15759", "highlight": {"background": "#ffffff", "border": "#E15759"}}, "size": 18.2, "font": {"size": 12, "color": "#ffffff"}, "title": ".constructor()", "community": 2, "community_name": "ResiliCoast Application", "source_file": "src/main.js", "file_type": "code", "degree": 6}, {"id": "src_main_resilicoastapp_currentbasin", "label": ".currentBasin()", "color": {"background": "#E15759", "border": "#E15759", "highlight": {"background": "#ffffff", "border": "#E15759"}}, "size": 11.4, "font": {"size": 0, "color": "#ffffff"}, "title": ".currentBasin()", "community": 2, "community_name": "ResiliCoast Application", "source_file": "src/main.js", "file_type": "code", "degree": 1}, {"id": "src_main_resilicoastapp_currentstep", "label": ".currentStep()", "color": {"background": "#E15759", "border": "#E15759", "highlight": {"background": "#ffffff", "border": "#E15759"}}, "size": 11.4, "font": {"size": 0, "color": "#ffffff"}, "title": ".currentStep()", "community": 2, "community_name": "ResiliCoast Application", "source_file": "src/main.js", "file_type": "code", "degree": 1}, {"id": "src_main_resilicoastapp_exposedassets", "label": ".exposedAssets()", "color": {"background": "#E15759", "border": "#E15759", "highlight": {"background": "#ffffff", "border": "#E15759"}}, "size": 11.4, "font": {"size": 0, "color": "#ffffff"}, "title": ".exposedAssets()", "community": 2, "community_name": "ResiliCoast Application", "source_file": "src/main.js", "file_type": "code", "degree": 1}, {"id": "src_main_resilicoastapp_init", "label": ".init()", "color": {"background": "#E15759", "border": "#E15759", "highlight": {"background": "#ffffff", "border": "#E15759"}}, "size": 16.8, "font": {"size": 12, "color": "#ffffff"}, "title": ".init()", "community": 2, "community_name": "ResiliCoast Application", "source_file": "src/main.js", "file_type": "code", "degree": 5}, {"id": "src_main_resilicoastapp_initmap", "label": ".initMap()", "color": {"background": "#E15759", "border": "#E15759", "highlight": {"background": "#ffffff", "border": "#E15759"}}, "size": 12.7, "font": {"size": 0, "color": "#ffffff"}, "title": ".initMap()", "community": 2, "community_name": "ResiliCoast Application", "source_file": "src/main.js", "file_type": "code", "degree": 2}, {"id": "src_main_resilicoastapp_loadbasin", "label": ".loadBasin()", "color": {"background": "#E15759", "border": "#E15759", "highlight": {"background": "#ffffff", "border": "#E15759"}}, "size": 16.8, "font": {"size": 12, "color": "#ffffff"}, "title": ".loadBasin()", "community": 2, "community_name": "ResiliCoast Application", "source_file": "src/main.js", "file_type": "code", "degree": 5}, {"id": "src_main_resilicoastapp_triggergeminianalysis", "label": ".triggerGeminiAnalysis()", "color": {"background": "#E15759", "border": "#E15759", "highlight": {"background": "#ffffff", "border": "#E15759"}}, "size": 14.1, "font": {"size": 0, "color": "#ffffff"}, "title": ".triggerGeminiAnalysis()", "community": 2, "community_name": "ResiliCoast Application", "source_file": "src/main.js", "file_type": "code", "degree": 3}, {"id": "src_engine_surge_physics_surgephysicsengine_assessassetexposure", "label": ".assessAssetExposure()", "color": {"background": "#76B7B2", "border": "#76B7B2", "highlight": {"background": "#ffffff", "border": "#76B7B2"}}, "size": 12.7, "font": {"size": 0, "color": "#ffffff"}, "title": ".assessAssetExposure()", "community": 3, "community_name": "Surge Physics Engine", "source_file": "src/engine/surge_physics.js", "file_type": "code", "degree": 2}, {"id": "src_engine_surge_physics_surgephysicsengine_constructor", "label": ".constructor()", "color": {"background": "#76B7B2", "border": "#76B7B2", "highlight": {"background": "#ffffff", "border": "#76B7B2"}}, "size": 11.4, "font": {"size": 0, "color": "#ffffff"}, "title": ".constructor()", "community": 3, "community_name": "Surge Physics Engine", "source_file": "src/engine/surge_physics.js", "file_type": "code", "degree": 1}, {"id": "src_engine_surge_physics_surgephysicsengine_destinationpoint", "label": ".destinationPoint()", "color": {"background": "#76B7B2", "border": "#76B7B2", "highlight": {"background": "#ffffff", "border": "#76B7B2"}}, "size": 12.7, "font": {"size": 0, "color": "#ffffff"}, "title": ".destinationPoint()", "community": 3, "community_name": "Surge Physics Engine", "source_file": "src/engine/surge_physics.js", "file_type": "code", "degree": 2}, {"id": "src_engine_surge_physics_surgephysicsengine_generatesurgepolygon", "label": ".generateSurgePolygon()", "color": {"background": "#76B7B2", "border": "#76B7B2", "highlight": {"background": "#ffffff", "border": "#76B7B2"}}, "size": 12.7, "font": {"size": 0, "color": "#ffffff"}, "title": ".generateSurgePolygon()", "community": 3, "community_name": "Surge Physics Engine", "source_file": "src/engine/surge_physics.js", "file_type": "code", "degree": 2}, {"id": "src_engine_surge_physics_surgephysicsengine_haversinedistance", "label": ".haversineDistance()", "color": {"background": "#76B7B2", "border": "#76B7B2", "highlight": {"background": "#ffffff", "border": "#76B7B2"}}, "size": 12.7, "font": {"size": 0, "color": "#ffffff"}, "title": ".haversineDistance()", "community": 3, "community_name": "Surge Physics Engine", "source_file": "src/engine/surge_physics.js", "file_type": "code", "degree": 2}, {"id": "src_main_resilicoastapp_bindevents", "label": ".bindEvents()", "color": {"background": "#59A14F", "border": "#59A14F", "highlight": {"background": "#ffffff", "border": "#59A14F"}}, "size": 29.1, "font": {"size": 12, "color": "#ffffff"}, "title": ".bindEvents()", "community": 4, "community_name": "Surge Visualization Controls", "source_file": "src/main.js", "file_type": "code", "degree": 14}, {"id": "src_main_resilicoastapp_generatesitrepdownload", "label": ".generateSitrepDownload()", "color": {"background": "#59A14F", "border": "#59A14F", "highlight": {"background": "#ffffff", "border": "#59A14F"}}, "size": 12.7, "font": {"size": 0, "color": "#ffffff"}, "title": ".generateSitrepDownload()", "community": 4, "community_name": "Surge Visualization Controls", "source_file": "src/main.js", "file_type": "code", "degree": 2}, {"id": "src_main_resilicoastapp_rendercone", "label": ".renderCone()", "color": {"background": "#59A14F", "border": "#59A14F", "highlight": {"background": "#ffffff", "border": "#59A14F"}}, "size": 14.1, "font": {"size": 0, "color": "#ffffff"}, "title": ".renderCone()", "community": 4, "community_name": "Surge Visualization Controls", "source_file": "src/main.js", "file_type": "code", "degree": 3}, {"id": "src_main_resilicoastapp_rendersurge", "label": ".renderSurge()", "color": {"background": "#59A14F", "border": "#59A14F", "highlight": {"background": "#ffffff", "border": "#59A14F"}}, "size": 14.1, "font": {"size": 0, "color": "#ffffff"}, "title": ".renderSurge()", "community": 4, "community_name": "Surge Visualization Controls", "source_file": "src/main.js", "file_type": "code", "degree": 3}, {"id": "src_main_resilicoastapp_settimestep", "label": ".setTimeStep()", "color": {"background": "#59A14F", "border": "#59A14F", "highlight": {"background": "#ffffff", "border": "#59A14F"}}, "size": 15.5, "font": {"size": 12, "color": "#ffffff"}, "title": ".setTimeStep()", "community": 4, "community_name": "Surge Visualization Controls", "source_file": "src/main.js", "file_type": "code", "degree": 4}, {"id": "src_main_resilicoastapp_toggleaudiobroadcast", "label": ".toggleAudioBroadcast()", "color": {"background": "#59A14F", "border": "#59A14F", "highlight": {"background": "#ffffff", "border": "#59A14F"}}, "size": 12.7, "font": {"size": 0, "color": "#ffffff"}, "title": ".toggleAudioBroadcast()", "community": 4, "community_name": "Surge Visualization Controls", "source_file": "src/main.js", "file_type": "code", "degree": 2}, {"id": "src_main_resilicoastapp_toggleplayback", "label": ".togglePlayback()", "color": {"background": "#59A14F", "border": "#59A14F", "highlight": {"background": "#ffffff", "border": "#59A14F"}}, "size": 14.1, "font": {"size": 0, "color": "#ffffff"}, "title": ".togglePlayback()", "community": 4, "community_name": "Surge Visualization Controls", "source_file": "src/main.js", "file_type": "code", "degree": 3}, {"id": "src_engine_advisory_dispatcher_advisorydispatcher_constructor", "label": ".constructor()", "color": {"background": "#EDC948", "border": "#EDC948", "highlight": {"background": "#ffffff", "border": "#EDC948"}}, "size": 11.4, "font": {"size": 0, "color": "#ffffff"}, "title": ".constructor()", "community": 5, "community_name": "Advisory Dispatch System", "source_file": "src/engine/advisory_dispatcher.js", "file_type": "code", "degree": 1}, {"id": "src_engine_advisory_dispatcher_advisorydispatcher_getadvisories", "label": ".getAdvisories()", "color": {"background": "#EDC948", "border": "#EDC948", "highlight": {"background": "#ffffff", "border": "#EDC948"}}, "size": 11.4, "font": {"size": 0, "color": "#ffffff"}, "title": ".getAdvisories()", "community": 5, "community_name": "Advisory Dispatch System", "source_file": "src/engine/advisory_dispatcher.js", "file_type": "code", "degree": 1}, {"id": "src_engine_advisory_dispatcher_advisorydispatcher_speakadvisory", "label": ".speakAdvisory()", "color": {"background": "#EDC948", "border": "#EDC948", "highlight": {"background": "#ffffff", "border": "#EDC948"}}, "size": 12.7, "font": {"size": 0, "color": "#ffffff"}, "title": ".speakAdvisory()", "community": 5, "community_name": "Advisory Dispatch System", "source_file": "src/engine/advisory_dispatcher.js", "file_type": "code", "degree": 2}, {"id": "src_engine_advisory_dispatcher_advisorydispatcher_stopspeaking", "label": ".stopSpeaking()", "color": {"background": "#EDC948", "border": "#EDC948", "highlight": {"background": "#ffffff", "border": "#EDC948"}}, "size": 12.7, "font": {"size": 0, "color": "#ffffff"}, "title": ".stopSpeaking()", "community": 5, "community_name": "Advisory Dispatch System", "source_file": "src/engine/advisory_dispatcher.js", "file_type": "code", "degree": 2}, {"id": "src_main_resilicoastapp_rendergeeraster", "label": ".renderGeeRaster()", "color": {"background": "#B07AA1", "border": "#B07AA1", "highlight": {"background": "#ffffff", "border": "#B07AA1"}}, "size": 14.1, "font": {"size": 0, "color": "#ffffff"}, "title": ".renderGeeRaster()", "community": 6, "community_name": "Map Rendering & UI Updates", "source_file": "src/main.js", "file_type": "code", "degree": 3}, {"id": "src_main_resilicoastapp_renderinfrastructure", "label": ".renderInfrastructure()", "color": {"background": "#B07AA1", "border": "#B07AA1", "highlight": {"background": "#ffffff", "border": "#B07AA1"}}, "size": 14.1, "font": {"size": 0, "color": "#ffffff"}, "title": ".renderInfrastructure()", "community": 6, "community_name": "Map Rendering & UI Updates", "source_file": "src/main.js", "file_type": "code", "degree": 3}, {"id": "src_main_resilicoastapp_rendertrack", "label": ".renderTrack()", "color": {"background": "#B07AA1", "border": "#B07AA1", "highlight": {"background": "#ffffff", "border": "#B07AA1"}}, "size": 14.1, "font": {"size": 0, "color": "#ffffff"}, "title": ".renderTrack()", "community": 6, "community_name": "Map Rendering & UI Updates", "source_file": "src/main.js", "file_type": "code", "degree": 3}, {"id": "src_main_resilicoastapp_updateadvisorydisplay", "label": ".updateAdvisoryDisplay()", "color": {"background": "#B07AA1", "border": "#B07AA1", "highlight": {"background": "#ffffff", "border": "#B07AA1"}}, "size": 14.1, "font": {"size": 0, "color": "#ffffff"}, "title": ".updateAdvisoryDisplay()", "community": 6, "community_name": "Map Rendering & UI Updates", "source_file": "src/main.js", "file_type": "code", "degree": 3}, {"id": "src_main_resilicoastapp_updateinfrastructurelist", "label": ".updateInfrastructureList()", "color": {"background": "#B07AA1", "border": "#B07AA1", "highlight": {"background": "#ffffff", "border": "#B07AA1"}}, "size": 12.7, "font": {"size": 0, "color": "#ffffff"}, "title": ".updateInfrastructureList()", "community": 6, "community_name": "Map Rendering & UI Updates", "source_file": "src/main.js", "file_type": "code", "degree": 2}, {"id": "src_main_resilicoastapp_updateui", "label": ".updateUI()", "color": {"background": "#B07AA1", "border": "#B07AA1", "highlight": {"background": "#ffffff", "border": "#B07AA1"}}, "size": 23.6, "font": {"size": 12, "color": "#ffffff"}, "title": ".updateUI()", "community": 6, "community_name": "Map Rendering & UI Updates", "source_file": "src/main.js", "file_type": "code", "degree": 10}, {"id": "package", "label": "package.json", "color": {"background": "#4E79A7", "border": "#4E79A7", "highlight": {"background": "#ffffff", "border": "#4E79A7"}}, "size": 25.0, "font": {"size": 12, "color": "#ffffff"}, "title": "package.json", "community": 0, "community_name": "Project Configuration", "source_file": "package.json", "file_type": "code", "degree": 11}, {"id": "package_dependencies", "label": "dependencies", "color": {"background": "#4E79A7", "border": "#4E79A7", "highlight": {"background": "#ffffff", "border": "#4E79A7"}}, "size": 14.1, "font": {"size": 0, "color": "#ffffff"}, "title": "dependencies", "community": 0, "community_name": "Project Configuration", "source_file": "package.json", "file_type": "code", "degree": 3}, {"id": "package_dependencies_leaflet", "label": "leaflet", "color": {"background": "#4E79A7", "border": "#4E79A7", "highlight": {"background": "#ffffff", "border": "#4E79A7"}}, "size": 11.4, "font": {"size": 0, "color": "#ffffff"}, "title": "leaflet", "community": 0, "community_name": "Project Configuration", "source_file": "package.json", "file_type": "code", "degree": 1}, {"id": "package_dependencies_lucide", "label": "lucide", "color": {"background": "#4E79A7", "border": "#4E79A7", "highlight": {"background": "#ffffff", "border": "#4E79A7"}}, "size": 11.4, "font": {"size": 0, "color": "#ffffff"}, "title": "lucide", "community": 0, "community_name": "Project Configuration", "source_file": "package.json", "file_type": "code", "degree": 1}, {"id": "package_description", "label": "description", "color": {"background": "#4E79A7", "border": "#4E79A7", "highlight": {"background": "#ffffff", "border": "#4E79A7"}}, "size": 11.4, "font": {"size": 0, "color": "#ffffff"}, "title": "description", "community": 0, "community_name": "Project Configuration", "source_file": "package.json", "file_type": "code", "degree": 1}, {"id": "package_devdependencies", "label": "devDependencies", "color": {"background": "#4E79A7", "border": "#4E79A7", "highlight": {"background": "#ffffff", "border": "#4E79A7"}}, "size": 12.7, "font": {"size": 0, "color": "#ffffff"}, "title": "devDependencies", "community": 0, "community_name": "Project Configuration", "source_file": "package.json", "file_type": "code", "degree": 2}, {"id": "package_devdependencies_vite", "label": "vite", "color": {"background": "#4E79A7", "border": "#4E79A7", "highlight": {"background": "#ffffff", "border": "#4E79A7"}}, "size": 11.4, "font": {"size": 0, "color": "#ffffff"}, "title": "vite", "community": 0, "community_name": "Project Configuration", "source_file": "package.json", "file_type": "code", "degree": 1}, {"id": "package_name", "label": "name", "color": {"background": "#4E79A7", "border": "#4E79A7", "highlight": {"background": "#ffffff", "border": "#4E79A7"}}, "size": 11.4, "font": {"size": 0, "color": "#ffffff"}, "title": "name", "community": 0, "community_name": "Project Configuration", "source_file": "package.json", "file_type": "code", "degree": 1}, {"id": "package_private", "label": "private", "color": {"background": "#4E79A7", "border": "#4E79A7", "highlight": {"background": "#ffffff", "border": "#4E79A7"}}, "size": 11.4, "font": {"size": 0, "color": "#ffffff"}, "title": "private", "community": 0, "community_name": "Project Configuration", "source_file": "package.json", "file_type": "code", "degree": 1}, {"id": "package_type", "label": "type", "color": {"background": "#4E79A7", "border": "#4E79A7", "highlight": {"background": "#ffffff", "border": "#4E79A7"}}, "size": 11.4, "font": {"size": 0, "color": "#ffffff"}, "title": "type", "community": 0, "community_name": "Project Configuration", "source_file": "package.json", "file_type": "code", "degree": 1}, {"id": "package_version", "label": "version", "color": {"background": "#4E79A7", "border": "#4E79A7", "highlight": {"background": "#ffffff", "border": "#4E79A7"}}, "size": 11.4, "font": {"size": 0, "color": "#ffffff"}, "title": "version", "community": 0, "community_name": "Project Configuration", "source_file": "package.json", "file_type": "code", "degree": 1}, {"id": "vite_config", "label": "vite.config.js", "color": {"background": "#4E79A7", "border": "#4E79A7", "highlight": {"background": "#ffffff", "border": "#4E79A7"}}, "size": 14.1, "font": {"size": 0, "color": "#ffffff"}, "title": "vite.config.js", "community": 0, "community_name": "Project Configuration", "source_file": "vite.config.js", "file_type": "code", "degree": 3}, {"id": "ref_leaflet", "label": "leaflet", "color": {"background": "#4E79A7", "border": "#4E79A7", "highlight": {"background": "#ffffff", "border": "#4E79A7"}}, "size": 12.7, "font": {"size": 0, "color": "#ffffff"}, "title": "leaflet", "community": 0, "community_name": "Project Configuration", "source_file": "package.json", "file_type": "concept", "degree": 2}, {"id": "ref_lucide", "label": "lucide", "color": {"background": "#4E79A7", "border": "#4E79A7", "highlight": {"background": "#ffffff", "border": "#4E79A7"}}, "size": 11.4, "font": {"size": 0, "color": "#ffffff"}, "title": "lucide", "community": 0, "community_name": "Project Configuration", "source_file": "package.json", "file_type": "concept", "degree": 1}, {"id": "ref_vite", "label": "vite", "color": {"background": "#4E79A7", "border": "#4E79A7", "highlight": {"background": "#ffffff", "border": "#4E79A7"}}, "size": 12.7, "font": {"size": 0, "color": "#ffffff"}, "title": "vite", "community": 0, "community_name": "Project Configuration", "source_file": "package.json", "file_type": "concept", "degree": 2}, {"id": "src_data_brics_scenarios", "label": "brics_scenarios.js", "color": {"background": "#F28E2B", "border": "#F28E2B", "highlight": {"background": "#ffffff", "border": "#F28E2B"}}, "size": 12.7, "font": {"size": 0, "color": "#ffffff"}, "title": "brics_scenarios.js", "community": 1, "community_name": "BRICS Basin Analysis", "source_file": "src/data/brics_scenarios.js", "file_type": "code", "degree": 2}, {"id": "src_data_brics_scenarios_brics_basins", "label": "BRICS_BASINS", "color": {"background": "#F28E2B", "border": "#F28E2B", "highlight": {"background": "#ffffff", "border": "#F28E2B"}}, "size": 12.7, "font": {"size": 0, "color": "#ffffff"}, "title": "BRICS_BASINS", "community": 1, "community_name": "BRICS Basin Analysis", "source_file": "src/data/brics_scenarios.js", "file_type": "code", "degree": 2}, {"id": "src_engine_gemini_reasoning", "label": "gemini_reasoning.js", "color": {"background": "#F28E2B", "border": "#F28E2B", "highlight": {"background": "#ffffff", "border": "#F28E2B"}}, "size": 12.7, "font": {"size": 0, "color": "#ffffff"}, "title": "gemini_reasoning.js", "community": 1, "community_name": "BRICS Basin Analysis", "source_file": "src/engine/gemini_reasoning.js", "file_type": "code", "degree": 2}, {"id": "src_engine_report_generator", "label": "report_generator.js", "color": {"background": "#F28E2B", "border": "#F28E2B", "highlight": {"background": "#ffffff", "border": "#F28E2B"}}, "size": 12.7, "font": {"size": 0, "color": "#ffffff"}, "title": "report_generator.js", "community": 1, "community_name": "BRICS Basin Analysis", "source_file": "src/engine/report_generator.js", "file_type": "code", "degree": 2}, {"id": "src_main", "label": "main.js", "color": {"background": "#F28E2B", "border": "#F28E2B", "highlight": {"background": "#ffffff", "border": "#F28E2B"}}, "size": 26.4, "font": {"size": 12, "color": "#ffffff"}, "title": "main.js", "community": 1, "community_name": "BRICS Basin Analysis", "source_file": "src/main.js", "file_type": "code", "degree": 12}, {"id": "src_engine_surge_physics", "label": "surge_physics.js", "color": {"background": "#76B7B2", "border": "#76B7B2", "highlight": {"background": "#ffffff", "border": "#76B7B2"}}, "size": 12.7, "font": {"size": 0, "color": "#ffffff"}, "title": "surge_physics.js", "community": 3, "community_name": "Surge Physics Engine", "source_file": "src/engine/surge_physics.js", "file_type": "code", "degree": 2}, {"id": "src_engine_advisory_dispatcher", "label": "advisory_dispatcher.js", "color": {"background": "#EDC948", "border": "#EDC948", "highlight": {"background": "#ffffff", "border": "#EDC948"}}, "size": 12.7, "font": {"size": 0, "color": "#ffffff"}, "title": "advisory_dispatcher.js", "community": 5, "community_name": "Advisory Dispatch System", "source_file": "src/engine/advisory_dispatcher.js", "file_type": "code", "degree": 2}, {"id": "package_scripts", "label": "scripts", "color": {"background": "#FF9DA7", "border": "#FF9DA7", "highlight": {"background": "#ffffff", "border": "#FF9DA7"}}, "size": 15.5, "font": {"size": 12, "color": "#ffffff"}, "title": "scripts", "community": 7, "community_name": "NPM Scripts", "source_file": "package.json", "file_type": "code", "degree": 4}, {"id": "package_scripts_build", "label": "build", "color": {"background": "#FF9DA7", "border": "#FF9DA7", "highlight": {"background": "#ffffff", "border": "#FF9DA7"}}, "size": 11.4, "font": {"size": 0, "color": "#ffffff"}, "title": "build", "community": 7, "community_name": "NPM Scripts", "source_file": "package.json", "file_type": "code", "degree": 1}, {"id": "package_scripts_dev", "label": "dev", "color": {"background": "#FF9DA7", "border": "#FF9DA7", "highlight": {"background": "#ffffff", "border": "#FF9DA7"}}, "size": 11.4, "font": {"size": 0, "color": "#ffffff"}, "title": "dev", "community": 7, "community_name": "NPM Scripts", "source_file": "package.json", "file_type": "code", "degree": 1}, {"id": "package_scripts_preview", "label": "preview", "color": {"background": "#FF9DA7", "border": "#FF9DA7", "highlight": {"background": "#ffffff", "border": "#FF9DA7"}}, "size": 11.4, "font": {"size": 0, "color": "#ffffff"}, "title": "preview", "community": 7, "community_name": "NPM Scripts", "source_file": "package.json", "file_type": "code", "degree": 1}, {"id": "ref_path", "label": "ref_path", "color": {"background": "#4E79A7", "border": "#4E79A7", "highlight": {"background": "#ffffff", "border": "#4E79A7"}}, "size": 11.4, "font": {"size": 0, "color": "#ffffff"}, "title": "ref_path", "community": 0, "community_name": "Project Configuration", "source_file": "", "file_type": "concept", "degree": 1}];
+const RAW_EDGES = [{"from": "src_engine_gemini_reasoning", "to": "src_engine_gemini_reasoning_geminireasoningengine", "label": "contains", "title": "contains [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_engine_gemini_reasoning_geminireasoningengine", "to": "src_engine_gemini_reasoning_geminireasoningengine_buildprompt", "label": "method", "title": "method [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_engine_gemini_reasoning_geminireasoningengine", "to": "src_engine_gemini_reasoning_geminireasoningengine_callgeminiapi", "label": "method", "title": "method [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_engine_gemini_reasoning_geminireasoningengine", "to": "src_engine_gemini_reasoning_geminireasoningengine_constructor", "label": "method", "title": "method [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_engine_gemini_reasoning_geminireasoningengine", "to": "src_engine_gemini_reasoning_geminireasoningengine_generatesimulatedreasoning", "label": "method", "title": "method [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_engine_gemini_reasoning_geminireasoningengine", "to": "src_engine_gemini_reasoning_geminireasoningengine_runmultimodalanalysis", "label": "method", "title": "method [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_engine_gemini_reasoning_geminireasoningengine", "to": "src_engine_gemini_reasoning_geminireasoningengine_setapikey", "label": "method", "title": "method [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_main", "to": "src_engine_gemini_reasoning_geminireasoningengine", "label": "imports", "title": "imports [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_main_resilicoastapp_constructor", "to": "src_engine_gemini_reasoning_geminireasoningengine", "label": "calls", "title": "calls [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_engine_report_generator", "to": "src_engine_report_generator_reportgenerator", "label": "contains", "title": "contains [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_engine_report_generator_reportgenerator", "to": "src_engine_report_generator_reportgenerator_downloadreport", "label": "method", "title": "method [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_engine_report_generator_reportgenerator", "to": "src_engine_report_generator_reportgenerator_generatesitrep", "label": "method", "title": "method [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_main", "to": "src_engine_report_generator_reportgenerator", "label": "imports", "title": "imports [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_main_resilicoastapp_constructor", "to": "src_engine_report_generator_reportgenerator", "label": "calls", "title": "calls [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_main", "to": "src_main_resilicoastapp", "label": "contains", "title": "contains [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_main_resilicoastapp", "to": "src_main_resilicoastapp_bindevents", "label": "method", "title": "method [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_main_resilicoastapp", "to": "src_main_resilicoastapp_constructor", "label": "method", "title": "method [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_main_resilicoastapp", "to": "src_main_resilicoastapp_currentbasin", "label": "method", "title": "method [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_main_resilicoastapp", "to": "src_main_resilicoastapp_currentstep", "label": "method", "title": "method [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_main_resilicoastapp", "to": "src_main_resilicoastapp_exposedassets", "label": "method", "title": "method [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_main_resilicoastapp", "to": "src_main_resilicoastapp_generatesitrepdownload", "label": "method", "title": "method [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_main_resilicoastapp", "to": "src_main_resilicoastapp_init", "label": "method", "title": "method [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_main_resilicoastapp", "to": "src_main_resilicoastapp_initmap", "label": "method", "title": "method [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_main_resilicoastapp", "to": "src_main_resilicoastapp_loadbasin", "label": "method", "title": "method [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_main_resilicoastapp", "to": "src_main_resilicoastapp_rendercone", "label": "method", "title": "method [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_main_resilicoastapp", "to": "src_main_resilicoastapp_rendergeeraster", "label": "method", "title": "method [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_main_resilicoastapp", "to": "src_main_resilicoastapp_renderinfrastructure", "label": "method", "title": "method [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_main_resilicoastapp", "to": "src_main_resilicoastapp_rendersurge", "label": "method", "title": "method [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_main_resilicoastapp", "to": "src_main_resilicoastapp_rendertrack", "label": "method", "title": "method [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_main_resilicoastapp", "to": "src_main_resilicoastapp_settimestep", "label": "method", "title": "method [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_main_resilicoastapp", "to": "src_main_resilicoastapp_toggleaudiobroadcast", "label": "method", "title": "method [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_main_resilicoastapp", "to": "src_main_resilicoastapp_toggleplayback", "label": "method", "title": "method [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_main_resilicoastapp", "to": "src_main_resilicoastapp_triggergeminianalysis", "label": "method", "title": "method [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_main_resilicoastapp", "to": "src_main_resilicoastapp_updateadvisorydisplay", "label": "method", "title": "method [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_main_resilicoastapp", "to": "src_main_resilicoastapp_updateinfrastructurelist", "label": "method", "title": "method [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_main_resilicoastapp", "to": "src_main_resilicoastapp_updateui", "label": "method", "title": "method [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_engine_surge_physics", "to": "src_engine_surge_physics_surgephysicsengine", "label": "contains", "title": "contains [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_engine_surge_physics_surgephysicsengine", "to": "src_engine_surge_physics_surgephysicsengine_assessassetexposure", "label": "method", "title": "method [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_engine_surge_physics_surgephysicsengine", "to": "src_engine_surge_physics_surgephysicsengine_constructor", "label": "method", "title": "method [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_engine_surge_physics_surgephysicsengine", "to": "src_engine_surge_physics_surgephysicsengine_destinationpoint", "label": "method", "title": "method [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_engine_surge_physics_surgephysicsengine", "to": "src_engine_surge_physics_surgephysicsengine_generatesurgepolygon", "label": "method", "title": "method [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_engine_surge_physics_surgephysicsengine", "to": "src_engine_surge_physics_surgephysicsengine_haversinedistance", "label": "method", "title": "method [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_main", "to": "src_engine_surge_physics_surgephysicsengine", "label": "imports", "title": "imports [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_main_resilicoastapp_constructor", "to": "src_engine_surge_physics_surgephysicsengine", "label": "calls", "title": "calls [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_engine_advisory_dispatcher", "to": "src_engine_advisory_dispatcher_advisorydispatcher", "label": "contains", "title": "contains [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_engine_advisory_dispatcher_advisorydispatcher", "to": "src_engine_advisory_dispatcher_advisorydispatcher_constructor", "label": "method", "title": "method [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_engine_advisory_dispatcher_advisorydispatcher", "to": "src_engine_advisory_dispatcher_advisorydispatcher_getadvisories", "label": "method", "title": "method [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_engine_advisory_dispatcher_advisorydispatcher", "to": "src_engine_advisory_dispatcher_advisorydispatcher_speakadvisory", "label": "method", "title": "method [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_engine_advisory_dispatcher_advisorydispatcher", "to": "src_engine_advisory_dispatcher_advisorydispatcher_stopspeaking", "label": "method", "title": "method [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_main", "to": "src_engine_advisory_dispatcher_advisorydispatcher", "label": "imports", "title": "imports [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_main_resilicoastapp_constructor", "to": "src_engine_advisory_dispatcher_advisorydispatcher", "label": "calls", "title": "calls [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "vite_config", "to": "vite_config_manualchunks", "label": "contains", "title": "contains [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_engine_gemini_reasoning_geminireasoningengine_runmultimodalanalysis", "to": "src_engine_gemini_reasoning_geminireasoningengine_buildprompt", "label": "calls", "title": "calls [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_engine_gemini_reasoning_geminireasoningengine_runmultimodalanalysis", "to": "src_engine_gemini_reasoning_geminireasoningengine_callgeminiapi", "label": "calls", "title": "calls [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_engine_gemini_reasoning_geminireasoningengine_runmultimodalanalysis", "to": "src_engine_gemini_reasoning_geminireasoningengine_generatesimulatedreasoning", "label": "calls", "title": "calls [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_main_resilicoastapp_constructor", "to": "src_main_resilicoastapp_init", "label": "calls", "title": "calls [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_main_resilicoastapp_init", "to": "src_main_resilicoastapp_bindevents", "label": "calls", "title": "calls [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_main_resilicoastapp_init", "to": "src_main_resilicoastapp_initmap", "label": "calls", "title": "calls [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_main_resilicoastapp_init", "to": "src_main_resilicoastapp_loadbasin", "label": "calls", "title": "calls [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_main_resilicoastapp_bindevents", "to": "src_main_resilicoastapp_loadbasin", "label": "calls", "title": "calls [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_main_resilicoastapp_loadbasin", "to": "src_main_resilicoastapp_triggergeminianalysis", "label": "calls", "title": "calls [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_main_resilicoastapp_loadbasin", "to": "src_main_resilicoastapp_updateui", "label": "calls", "title": "calls [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_main_resilicoastapp_bindevents", "to": "src_main_resilicoastapp_triggergeminianalysis", "label": "calls", "title": "calls [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_engine_surge_physics_surgephysicsengine_assessassetexposure", "to": "src_engine_surge_physics_surgephysicsengine_haversinedistance", "label": "calls", "title": "calls [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_engine_surge_physics_surgephysicsengine_generatesurgepolygon", "to": "src_engine_surge_physics_surgephysicsengine_destinationpoint", "label": "calls", "title": "calls [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_main_resilicoastapp_bindevents", "to": "src_main_resilicoastapp_generatesitrepdownload", "label": "calls", "title": "calls [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_main_resilicoastapp_bindevents", "to": "src_main_resilicoastapp_rendercone", "label": "calls", "title": "calls [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_main_resilicoastapp_bindevents", "to": "src_main_resilicoastapp_rendergeeraster", "label": "calls", "title": "calls [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_main_resilicoastapp_bindevents", "to": "src_main_resilicoastapp_renderinfrastructure", "label": "calls", "title": "calls [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_main_resilicoastapp_bindevents", "to": "src_main_resilicoastapp_rendersurge", "label": "calls", "title": "calls [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_main_resilicoastapp_bindevents", "to": "src_main_resilicoastapp_rendertrack", "label": "calls", "title": "calls [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_main_resilicoastapp_bindevents", "to": "src_main_resilicoastapp_settimestep", "label": "calls", "title": "calls [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_main_resilicoastapp_bindevents", "to": "src_main_resilicoastapp_toggleaudiobroadcast", "label": "calls", "title": "calls [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_main_resilicoastapp_bindevents", "to": "src_main_resilicoastapp_toggleplayback", "label": "calls", "title": "calls [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_main_resilicoastapp_bindevents", "to": "src_main_resilicoastapp_updateadvisorydisplay", "label": "calls", "title": "calls [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_main_resilicoastapp_updateui", "to": "src_main_resilicoastapp_rendercone", "label": "calls", "title": "calls [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_main_resilicoastapp_updateui", "to": "src_main_resilicoastapp_rendersurge", "label": "calls", "title": "calls [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_main_resilicoastapp_settimestep", "to": "src_main_resilicoastapp_updateui", "label": "calls", "title": "calls [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_main_resilicoastapp_toggleplayback", "to": "src_main_resilicoastapp_settimestep", "label": "calls", "title": "calls [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_engine_advisory_dispatcher_advisorydispatcher_speakadvisory", "to": "src_engine_advisory_dispatcher_advisorydispatcher_stopspeaking", "label": "calls", "title": "calls [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_main_resilicoastapp_updateui", "to": "src_main_resilicoastapp_rendergeeraster", "label": "calls", "title": "calls [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_main_resilicoastapp_updateui", "to": "src_main_resilicoastapp_renderinfrastructure", "label": "calls", "title": "calls [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_main_resilicoastapp_updateui", "to": "src_main_resilicoastapp_rendertrack", "label": "calls", "title": "calls [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_main_resilicoastapp_updateui", "to": "src_main_resilicoastapp_updateadvisorydisplay", "label": "calls", "title": "calls [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_main_resilicoastapp_updateui", "to": "src_main_resilicoastapp_updateinfrastructurelist", "label": "calls", "title": "calls [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "package", "to": "package_dependencies", "label": "contains", "title": "contains [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "package", "to": "package_description", "label": "contains", "title": "contains [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "package", "to": "package_devdependencies", "label": "contains", "title": "contains [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "package", "to": "package_name", "label": "contains", "title": "contains [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "package", "to": "package_private", "label": "contains", "title": "contains [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "package", "to": "package_scripts", "label": "contains", "title": "contains [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "package", "to": "package_type", "label": "contains", "title": "contains [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "package", "to": "package_version", "label": "contains", "title": "contains [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "package", "to": "ref_leaflet", "label": "imports", "title": "imports [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "package", "to": "ref_lucide", "label": "imports", "title": "imports [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "package", "to": "ref_vite", "label": "imports", "title": "imports [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "package_dependencies", "to": "package_dependencies_leaflet", "label": "contains", "title": "contains [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "package_dependencies", "to": "package_dependencies_lucide", "label": "contains", "title": "contains [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "package_devdependencies", "to": "package_devdependencies_vite", "label": "contains", "title": "contains [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "vite_config", "to": "ref_path", "label": "imports_from", "title": "imports_from [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "vite_config", "to": "ref_vite", "label": "imports_from", "title": "imports_from [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_main", "to": "ref_leaflet", "label": "imports_from", "title": "imports_from [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_data_brics_scenarios", "to": "src_data_brics_scenarios_brics_basins", "label": "contains", "title": "contains [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_main", "to": "src_data_brics_scenarios", "label": "imports_from", "title": "imports_from [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_main", "to": "src_data_brics_scenarios_brics_basins", "label": "imports", "title": "imports [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_main", "to": "src_engine_gemini_reasoning", "label": "imports_from", "title": "imports_from [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_main", "to": "src_engine_report_generator", "label": "imports_from", "title": "imports_from [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_main", "to": "src_engine_advisory_dispatcher", "label": "imports_from", "title": "imports_from [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "src_main", "to": "src_engine_surge_physics", "label": "imports_from", "title": "imports_from [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "package_scripts", "to": "package_scripts_build", "label": "contains", "title": "contains [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "package_scripts", "to": "package_scripts_dev", "label": "contains", "title": "contains [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}, {"from": "package_scripts", "to": "package_scripts_preview", "label": "contains", "title": "contains [EXTRACTED]", "dashes": false, "width": 2, "color": {"opacity": 0.7}, "confidence": "EXTRACTED"}];
+const LEGEND = [{"cid": 0, "color": "#4E79A7", "label": "Project Configuration", "count": 17}, {"cid": 1, "color": "#F28E2B", "label": "BRICS Basin Analysis", "count": 15}, {"cid": 2, "color": "#E15759", "label": "ResiliCoast Application", "count": 9}, {"cid": 3, "color": "#76B7B2", "label": "Surge Physics Engine", "count": 7}, {"cid": 4, "color": "#59A14F", "label": "Surge Visualization Controls", "count": 7}, {"cid": 5, "color": "#EDC948", "label": "Advisory Dispatch System", "count": 6}, {"cid": 6, "color": "#B07AA1", "label": "Map Rendering &amp; UI Updates", "count": 6}, {"cid": 7, "color": "#FF9DA7", "label": "NPM Scripts", "count": 4}];
+
+// HTML-escape helper — prevents XSS when injecting graph data into innerHTML
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+// Build vis datasets
+const nodesDS = new vis.DataSet(RAW_NODES.map((n, i) => ({
+  id: n.id, label: n.label, color: n.color, size: n.size,
+  font: n.font, title: n.title,
+  // Fermat/golden-angle spiral seed positions (#3699): spreading nodes out
+  // before physics runs keeps avoidOverlap from computing near-zero-distance
+  // repulsion that blows the BarnesHut recursion into a stack overflow on large
+  // graphs. `i` is the map index — physics still settles small graphs identically.
+  x: 30 * Math.sqrt(i) * Math.cos(i * 2.4),
+  y: 30 * Math.sqrt(i) * Math.sin(i * 2.4),
+  _community: n.community, _community_name: n.community_name,
+  _source_file: n.source_file, _file_type: n.file_type, _degree: n.degree,
+})));
+
+const edgesDS = new vis.DataSet(RAW_EDGES.map((e, i) => ({
+  id: i, from: e.from, to: e.to,
+  label: '',
+  title: e.title,
+  dashes: e.dashes,
+  width: e.width,
+  color: e.color,
+  arrows: { to: { enabled: true, scaleFactor: 0.5 } },
+})));
+
+const container = document.getElementById('graph');
+const network = new vis.Network(container, { nodes: nodesDS, edges: edgesDS }, {
+  physics: {
+    enabled: true,
+    solver: 'forceAtlas2Based',
+    forceAtlas2Based: {
+      gravitationalConstant: -60,
+      centralGravity: 0.005,
+      springLength: 120,
+      springConstant: 0.08,
+      damping: 0.4,
+      avoidOverlap: 0.8,
+    },
+    stabilization: { iterations: 200, fit: true },
+  },
+  interaction: {
+    hover: true,
+    tooltipDelay: 100,
+    hideEdgesOnDrag: true,
+    navigationButtons: false,
+    keyboard: false,
+  },
+  nodes: { shape: 'dot', borderWidth: 1.5 },
+  edges: { smooth: { type: 'continuous', roundness: 0.2 }, selectionWidth: 3 },
+});
+
+network.once('stabilizationIterationsDone', () => {
+  network.setOptions({ physics: { enabled: false } });
+});
+
+function showInfo(nodeId) {
+  const n = nodesDS.get(nodeId);
+  if (!n) return;
+  const neighborIds = network.getConnectedNodes(nodeId);
+  const neighborItems = neighborIds.map(nid => {
+    const nb = nodesDS.get(nid);
+    const color = nb ? nb.color.background : '#555';
+    return `<span class="neighbor-link" style="border-left-color:${esc(color)}" data-nid="${esc(nid)}">${esc(nb ? nb.label : nid)}</span>`;
+  }).join('');
+  document.getElementById('info-content').innerHTML = `
+    <div class="field"><b>${esc(n.label)}</b></div>
+    <div class="field">Type: ${esc(n._file_type || 'unknown')}</div>
+    <div class="field">Community: ${esc(n._community_name)}</div>
+    <div class="field">Source: ${esc(n._source_file || '-')}</div>
+    <div class="field">Degree: ${n._degree}</div>
+    ${neighborIds.length ? `<div class="field" style="margin-top:8px;color:#aaa;font-size:11px">Neighbors (${neighborIds.length})</div><div id="neighbors-list">${neighborItems}</div>` : ''}
+  `;
+}
+
+function focusNode(nodeId) {
+  network.focus(nodeId, { scale: 1.4, animation: true });
+  network.selectNodes([nodeId]);
+  showInfo(nodeId);
+}
+
+// Neighbor links use a data attribute + one delegated listener rather than an
+// inline onclick. A node id/label sourced from a document or a scraped URL
+// (graphify add) can contain a double-quote; dropping the stringified id
+// unescaped into a quoted onclick both broke every link and allowed a hostile
+// source to inject an event handler into the local report (stored XSS, #1838).
+// esc() on data-nid keeps the value inside the attribute; the listener reads it
+// back verbatim. Bound to document so it survives the innerHTML rebuild that
+// recreates #neighbors-list on each showInfo().
+document.addEventListener('click', e => {
+  const el = e.target.closest('.neighbor-link');
+  if (el && el.dataset.nid !== undefined) focusNode(el.dataset.nid);
+});
+
+// Track hovered node — hover detection is more reliable than click params
+let hoveredNodeId = null;
+network.on('hoverNode', params => {
+  hoveredNodeId = params.node;
+  container.style.cursor = 'pointer';
+});
+network.on('blurNode', () => {
+  hoveredNodeId = null;
+  container.style.cursor = 'default';
+});
+container.addEventListener('click', () => {
+  if (hoveredNodeId !== null) {
+    showInfo(hoveredNodeId);
+    network.selectNodes([hoveredNodeId]);
+  }
+});
+network.on('click', params => {
+  if (params.nodes.length > 0) {
+    showInfo(params.nodes[0]);
+  } else if (hoveredNodeId === null) {
+    document.getElementById('info-content').innerHTML = '<span class="empty">Click a node to inspect it</span>';
+  }
+});
+
+const searchInput = document.getElementById('search');
+const searchResults = document.getElementById('search-results');
+searchInput.addEventListener('input', () => {
+  const q = searchInput.value.toLowerCase().trim();
+  searchResults.innerHTML = '';
+  if (!q) { searchResults.style.display = 'none'; return; }
+  const matches = RAW_NODES.filter(n => n.label.toLowerCase().includes(q)).slice(0, 20);
+  if (!matches.length) { searchResults.style.display = 'none'; return; }
+  searchResults.style.display = 'block';
+  matches.forEach(n => {
+    const el = document.createElement('div');
+    el.className = 'search-item';
+    el.textContent = n.label;
+    el.style.borderLeft = `3px solid ${n.color.background}`;
+    el.style.paddingLeft = '8px';
+    el.onclick = () => {
+      network.focus(n.id, { scale: 1.5, animation: true });
+      network.selectNodes([n.id]);
+      showInfo(n.id);
+      searchResults.style.display = 'none';
+      searchInput.value = '';
+    };
+    searchResults.appendChild(el);
+  });
+});
+document.addEventListener('click', e => {
+  if (!searchResults.contains(e.target) && e.target !== searchInput)
+    searchResults.style.display = 'none';
+});
+
+const hiddenCommunities = new Set();
+
+const selectAllCb = document.getElementById('select-all-cb');
+
+function updateSelectAllState() {
+  const total = LEGEND.length;
+  const hidden = hiddenCommunities.size;
+  selectAllCb.checked = hidden === 0;
+  selectAllCb.indeterminate = hidden > 0 && hidden < total;
+}
+
+function toggleAllCommunities(hide) {
+  document.querySelectorAll('.legend-item').forEach(item => {
+    hide ? item.classList.add('dimmed') : item.classList.remove('dimmed');
+  });
+  document.querySelectorAll('.legend-cb').forEach(cb => {
+    cb.checked = !hide;
+  });
+  LEGEND.forEach(c => {
+    if (hide) hiddenCommunities.add(c.cid); else hiddenCommunities.delete(c.cid);
+  });
+  const updates = RAW_NODES.map(n => ({ id: n.id, hidden: hide }));
+  nodesDS.update(updates);
+  updateSelectAllState();
+}
+
+const legendEl = document.getElementById('legend');
+LEGEND.forEach(c => {
+  const item = document.createElement('div');
+  item.className = 'legend-item';
+  const cb = document.createElement('input');
+  cb.type = 'checkbox';
+  cb.className = 'legend-cb';
+  cb.checked = true;
+  cb.addEventListener('change', (e) => {
+    e.stopPropagation();
+    if (cb.checked) {
+      hiddenCommunities.delete(c.cid);
+      item.classList.remove('dimmed');
+    } else {
+      hiddenCommunities.add(c.cid);
+      item.classList.add('dimmed');
+    }
+    const updates = RAW_NODES
+      .filter(n => n.community === c.cid)
+      .map(n => ({ id: n.id, hidden: !cb.checked }));
+    nodesDS.update(updates);
+    updateSelectAllState();
+  });
+  item.innerHTML = `<div class="legend-dot" style="background:${c.color}"></div>
+    <span class="legend-label">${c.label}</span>
+    <span class="legend-count">${c.count}</span>`;
+  item.prepend(cb);
+  item.onclick = (e) => {
+    if (e.target === cb) return;
+    cb.checked = !cb.checked;
+    cb.dispatchEvent(new Event('change'));
+  };
+  legendEl.appendChild(item);
+});
+</script>
+<script>
+// Render hyperedges as shaded regions
+const hyperedges = [];
+// afterDrawing passes ctx already transformed to network coordinate space.
+// Draw node positions raw — no manual pan/zoom/DPR math needed.
+
+// Andrew's monotone chain. Returns the hull in counter-clockwise order, which
+// is what the perimeter must be traced in. Collinear and duplicate points
+// collapse to the extremes, so degenerate member sets render as a segment
+// rather than a zero-area crossed path.
+function convexHull(pts) {
+    const p = pts.slice().sort((a, b) => (a.x - b.x) || (a.y - b.y));
+    if (p.length < 3) return p;
+    const cross = (o, a, b) => (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x);
+    const build = seq => {
+        const out = [];
+        for (const q of seq) {
+            while (out.length >= 2 && cross(out[out.length - 2], out[out.length - 1], q) <= 0) out.pop();
+            out.push(q);
+        }
+        out.pop();
+        return out;
+    };
+    const hull = build(p).concat(build(p.slice().reverse()));
+    return hull.length >= 3 ? hull : p;
+}
+network.on('afterDrawing', function(ctx) {
+    hyperedges.forEach(h => {
+        const positions = h.nodes
+            .map(nid => network.getPositions([nid])[nid])
+            .filter(p => p !== undefined);
+        if (positions.length < 2) return;
+        ctx.save();
+        ctx.globalAlpha = 0.12;
+        ctx.fillStyle = '#6366f1';
+        ctx.strokeStyle = '#6366f1';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        // Centroid and expanded hull in network coordinates.
+        // The perimeter must follow hull order, not h.nodes order: tracing the
+        // raw member order self-intersects whenever the layout does not happen
+        // to place members in angular order, filling as crossed wedges.
+        const cx = positions.reduce((s, p) => s + p.x, 0) / positions.length;
+        const cy = positions.reduce((s, p) => s + p.y, 0) / positions.length;
+        const hull = convexHull(positions);
+        const expanded = hull.map(p => ({
+            x: cx + (p.x - cx) * 1.15,
+            y: cy + (p.y - cy) * 1.15
+        }));
+        ctx.moveTo(expanded[0].x, expanded[0].y);
+        expanded.slice(1).forEach(p => ctx.lineTo(p.x, p.y));
+        ctx.closePath();
+        ctx.fill();
+        ctx.globalAlpha = 0.4;
+        ctx.stroke();
+        // Label
+        ctx.globalAlpha = 0.8;
+        ctx.fillStyle = '#4f46e5';
+        ctx.font = 'bold 11px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(h.label, cx, cy - 5);
+        ctx.restore();
+    });
+});
+</script>
+</body>
+</html>

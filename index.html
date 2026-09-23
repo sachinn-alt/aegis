@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aegis — Predictive Cyclone Impact & Infrastructure Forecaster</title>
+  <meta name="description" content="Predictive coastal risk, storm surge simulation, and critical infrastructure vulnerability modeling platform for BRICS nations using Google Earth Engine and Gemini 3.7 Flash." />
+  <link rel="canonical" href="https://aegis.brics-resilience.org/" />
+  
+  <!-- Custom Favicon -->
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://aegis.brics-resilience.org/" />
+  <meta property="og:title" content="Aegis — Predictive Cyclone Impact & Infrastructure Forecaster" />
+  <meta property="og:description" content="AI-powered predictive storm surge, GEE satellite telemetry, and critical infrastructure vulnerability modeling for BRICS nations." />
+  <meta property="og:image" content="/og-image.svg" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:url" content="https://aegis.brics-resilience.org/" />
+  <meta name="twitter:title" content="Aegis — Predictive Cyclone Impact & Infrastructure Forecaster" />
+  <meta name="twitter:description" content="AI-powered predictive storm surge, GEE satellite telemetry, and critical infrastructure vulnerability modeling for BRICS nations." />
+  <meta name="twitter:image" content="/og-image.svg" />
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  
+  <!-- Google Fonts: Outfit & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="/style.css" />
+
+  <!-- Structured Data: Government Emergency Service & SoftwareApplication Schema -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "SoftwareApplication",
+        "name": "Aegis",
+        "operatingSystem": "All modern web browsers",
+        "applicationCategory": "EmergencyServiceApplication",
+        "description": "Predictive coastal disaster risk, storm surge simulation, and critical infrastructure vulnerability forecaster for BRICS nations powered by Google Earth Engine and Gemini 3.7 Flash.",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "author": {
+          "@type": "Organization",
+          "name": "BRICS Disaster Resilience Network",
+          "url": "https://aegis.brics-resilience.org/"
+        }
+      },
+      {
+        "@type": "GovernmentService",
+        "name": "Aegis Early-Warning Disaster Response Service",
+        "serviceType": "Anticipatory Coastal Disaster & Infrastructure Defense",
+        "provider": {
+          "@type": "GovernmentOrganization",
+          "name": "National Disaster Management Authority (NDMA) & BRICS Resilience Network",
+          "areaServed": [
+            { "@type": "Country", "name": "India" },
+            { "@type": "Country", "name": "South Africa" },
+            { "@type": "Country", "name": "Brazil" },
+            { "@type": "Country", "name": "China" }
+          ]
+        },
+        "url": "https://aegis.brics-resilience.org/"
+      },
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "National EOC",
+            "item": "https://aegis.brics-resilience.org/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "BRICS Coastal Atlas",
+            "item": "https://aegis.brics-resilience.org/#atlas"
+          },
+          {
+            "@type": "ListItem",
+            "position": 3,
+            "name": "Active Surveillance",
+            "item": "https://aegis.brics-resilience.org/#active"
+          }
+        ]
+      }
+    ]
+  }
+  </script>
+</head>
+<body class="theme-tactical-dark">
+  <div id="app" class="eoc-dashboard">
+    
+    <!-- Top Navigation Header -->
+    <header class="eoc-header">
+      <div class="brand-group">
+        <div class="radar-pulse-icon" aria-hidden="true">
+          <div class="pulse-ring"></div>
+          <span class="icon-core">🌀</span>
+        </div>
+        <div class="brand-text">
+          <div class="title-row">
+            <!-- Exactly one H1 per page -->
+            <h1 class="brand-title">AEGIS</h1>
+            <span class="brics-pill">BRICS DISASTER RESILIENCE NETWORK</span>
+          </div>
+          <!-- Breadcrumb Trail -->
+          <nav class="eoc-breadcrumbs" aria-label="Breadcrumb">
+            <a href="/" class="crumb-link">National EOC</a>
+            <span class="crumb-sep">/</span>
+            <span class="crumb-current">Active Surveillance &amp; Vulnerability Grid</span>
+          </nav>
+        </div>
+      </div>
+
+      <!-- Basin & Scenario Selector -->
+      <div class="header-controls">
+        <div class="basin-selector-wrapper">
+          <label for="basinSelect" class="control-label">COASTAL BASIN</label>
+          <select id="basinSelect" class="basin-dropdown" aria-label="Select Coastal Basin Scenario">
+            <option value="india" selected>🇮🇳 India — Bay of Bengal (Cyclone DANA)</option>
+            <option value="south_africa">🇿🇦 South Africa — Indian Ocean (Cyclone FREDDY)</option>
+            <option value="brazil">🇧🇷 Brazil — South Atlantic (Rio Grande Surge)</option>
+            <option value="china">🇨🇳 China — South China Sea (Typhoon DOKSURI)</option>
+          </select>
+        </div>
+
+        <!-- Live Status Indicators -->
+        <div class="status-chip-group">
+          <div class="status-chip live-alert">
+            <span class="indicator-dot blinking" aria-hidden="true"></span>
+            <span id="headerStatusText">RED ALERT: LANDFALL IMMINENT</span>
+          </div>
+          <div class="status-chip gee-chip">
+            <span class="indicator-dot green" aria-hidden="true"></span>
+            <span>GEE SATELLITE: INGESTING</span>
+          </div>
+        </div>
+
+        <!-- Header Actions & Internal Navigation Links -->
+        <div class="header-actions">
+          <a href="/404.html" class="btn-ghost" title="Test 404 Telemetry Range Page" aria-label="Telemetry diagnostics link">
+            📡 <span class="btn-text">Test 404</span>
+          </a>
+          <button id="btnApiKey" class="btn-ghost" title="Configure Google Gemini API Key" aria-label="Gemini API Key configuration">
+            🔑 <span class="btn-text">Gemini Key</span>
+          </button>
+          <button id="btnSitrep" class="btn-accent" title="Download Official Situation Report" aria-label="Generate Executive Situation Report">
+            📄 <span class="btn-text">Generate SITREP</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Workspace Container -->
+    <main class="eoc-main">
+      
+      <!-- Left Panel: Storm Physics & Telemetry HUD -->
+      <aside class="panel left-panel" aria-label="Storm Telemetry & Layer Controls">
+        <div class="panel-section storm-summary-card">
+          <div class="card-header">
+            <span class="card-badge" id="stormCategoryBadge">CATEGORY 3</span>
+            <span class="card-timestamp" id="stepTimestamp">Day -1, 06:00 UTC</span>
+          </div>
+          <h2 class="active-storm-title" id="stormNameHeading">Cyclone DANA</h2>
+          <p class="target-corridor-text" id="targetCorridorDesc">Odisha &amp; West Bengal Coastal Corridors</p>
+          
+          <!-- Key Metrics Grid -->
+          <div class="telemetry-grid">
+            <div class="telemetry-cell">
+              <span class="metric-label">CENTRAL PRESSURE</span>
+              <div class="metric-value-row">
+                <span class="metric-val" id="valPressure">976</span>
+                <span class="metric-unit">hPa</span>
+              </div>
+            </div>
+            <div class="telemetry-cell">
+              <span class="metric-label">MAX SUSTAINED WIND</span>
+              <div class="metric-value-row">
+                <span class="metric-val highlight-amber" id="valWind">130</span>
+                <span class="metric-unit">km/h</span>
+              </div>
+            </div>
+            <div class="telemetry-cell">
+              <span class="metric-label">STORM SURGE HEIGHT</span>
+              <div class="metric-value-row">
+                <span class="metric-val highlight-cyan" id="valSurge">2.7</span>
+                <span class="metric-unit">m</span>
+              </div>
+            </div>
+            <div class="telemetry-cell">
+              <span class="metric-label">24H PRECIPITATION</span>
+              <div class="metric-value-row">
+                <span class="metric-val" id="valRain">260</span>
+                <span class="metric-unit">mm</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Population Exposure Metric -->
+          <div class="population-exposure-box">
+            <div class="exp-icon" aria-hidden="true">👥</div>
+            <div class="exp-content">
+              <span class="exp-title">COASTAL POPULATION EXPOSED</span>
+              <span class="exp-count" id="valPopulation">3,850,000</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Layer Toggles Section -->
+        <div class="panel-section layer-controls-card">
+          <h3 class="section-heading">TACTICAL GIS OVERLAYS</h3>
+          <div class="layer-toggle-list">
+            <label class="toggle-item">
+              <input type="checkbox" id="layerTrack" checked aria-label="Toggle Cyclone Path Layer" />
+              <span class="toggle-slider"></span>
+              <span class="toggle-text">Cyclone Path &amp; Eye Radius</span>
+            </label>
+            <label class="toggle-item">
+              <input type="checkbox" id="layerCone" checked aria-label="Toggle Wind Cone Layer" />
+              <span class="toggle-slider"></span>
+              <span class="toggle-text">Wind Swath Cone of Uncertainty</span>
+            </label>
+            <label class="toggle-item">
+              <input type="checkbox" id="layerSurge" checked aria-label="Toggle Storm Surge Polygon" />
+              <span class="toggle-slider"></span>
+              <span class="toggle-text">Surge Inundation Polygon</span>
+            </label>
+            <label class="toggle-item">
+              <input type="checkbox" id="layerGee" checked aria-label="Toggle Sentinel-1 SAR Raster" />
+              <span class="toggle-slider"></span>
+              <span class="toggle-text">Sentinel-1 SAR Flood Inundation (GEE)</span>
+            </label>
+            <label class="toggle-item">
+              <input type="checkbox" id="layerInfrastructure" checked aria-label="Toggle Critical Infrastructure Layer" />
+              <span class="toggle-slider"></span>
+              <span class="toggle-text">Critical Infrastructure Network</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Infrastructure Status Snapshot -->
+        <div class="panel-section infrastructure-mini-list">
+          <div class="section-header-row">
+            <h3 class="section-heading">CRITICAL ASSET EXPOSURE</h3>
+            <span class="threat-counter" id="threatCountBadge">4 At Risk</span>
+          </div>
+          <div id="assetSummaryList" class="asset-scroll-list" role="list">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+      </aside>
+
+      <!-- Center Viewport: Interactive GIS Map & Time Scrubber -->
+      <section class="center-viewport" aria-label="Interactive Tactical GIS Map">
+        <!-- Interactive Map Container -->
+        <div id="gisMap" class="tactical-map-container" role="region" aria-label="Coastal GIS Map Viewport"></div>
+
+        <!-- Floating Map Legend -->
+        <div class="map-legend-overlay" aria-label="Map Legend">
+          <div class="legend-title">RISK LEVELS</div>
+          <div class="legend-row"><span class="legend-color-dot dot-critical" aria-hidden="true"></span> Submerged / Failed</div>
+          <div class="legend-row"><span class="legend-color-dot dot-high" aria-hidden="true"></span> Critical Alert / Cut Off</div>
+          <div class="legend-row"><span class="legend-color-dot dot-warning" aria-hidden="true"></span> Backup Power / Monitored</div>
+          <div class="legend-row"><span class="legend-color-dot dot-safe" aria-hidden="true"></span> Fortified / Operational</div>
+        </div>
+
+        <!-- Floating Bottom Time Scrubber -->
+        <div class="time-scrubber-dock" role="toolbar" aria-label="Simulation Time Scrubber">
+          <div class="scrubber-header">
+            <div class="time-readout">
+              <span class="label">ANALYSIS TIMELINE:</span>
+              <span id="activeTimeStepLabel" class="active-step-badge">T-24h (24 Hours Before Landfall)</span>
+            </div>
+            <div class="playback-controls">
+              <button id="btnPlayPause" class="btn-play" aria-label="Toggle Auto-Simulation Playback">
+                <span id="playIcon" aria-hidden="true">▶</span> <span id="playText">Auto-Simulate</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Time Slider Steps -->
+          <div class="timeline-track-container">
+            <input type="range" id="timeSlider" min="0" max="4" step="1" value="2" class="timeline-slider" aria-label="Cyclone timeline progression slider" />
+            <div class="timeline-markers">
+              <span class="marker" data-step="0">T-72h</span>
+              <span class="marker" data-step="1">T-48h</span>
+              <span class="marker active" data-step="2">T-24h</span>
+              <span class="marker landfall" data-step="3">Landfall</span>
+              <span class="marker" data-step="4">T+12h</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right Panel: Gemini 3.7 Flash & Action Center -->
+      <aside class="panel right-panel" aria-label="Gemini Reasoning & Multilingual Dispatch">
+        
+        <!-- Gemini 3.7 Flash Spatial Reasoning Core -->
+        <div class="panel-section gemini-card">
+          <div class="gemini-header">
+            <div class="gemini-branding">
+              <span class="sparkle-icon" aria-hidden="true">✨</span>
+              <div>
+                <h3 class="gemini-title">Gemini 3.7 Flash</h3>
+                <span class="gemini-sub">Multimodal Spatial Reasoning</span>
+              </div>
+            </div>
+            <button id="btnRunGemini" class="btn-gemini-pulse" aria-label="Run Gemini Multimodal Spatial Analysis">
+              <span>Analyze Map</span>
+            </button>
+          </div>
+
+          <div class="gemini-output-container" aria-live="polite">
+            <div id="geminiLoader" class="gemini-loading-indicator hidden">
+              <div class="scanner-line"></div>
+              <span>Gemini 3.7 Flash synthesizing GEE satellite rasters &amp; infrastructure topology...</span>
+            </div>
+            <div id="geminiContent" class="gemini-markdown-body">
+              <!-- Populated by Gemini -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Multilingual Early-Warning Advisory Dispatcher -->
+        <div class="panel-section advisory-card">
+          <div class="advisory-header-row">
+            <h3 class="section-heading">EARLY-WARNING ADVISORY</h3>
+            <div class="lang-selector-group">
+              <label for="advisoryLangSelect" class="sr-only">Advisory Language</label>
+              <select id="advisoryLangSelect" class="lang-dropdown" aria-label="Select Advisory Broadcast Language">
+                <!-- Dynamically populated based on basin -->
+              </select>
+            </div>
+          </div>
+
+          <div class="advisory-body-box">
+            <div class="advisory-source-tag" id="advisorySource">OSDMA Emergency Broadcast</div>
+            <h4 class="advisory-title" id="advisoryTitle">ଅତ୍ୟନ୍ତ ଜରୁରୀ ବାତ୍ୟା ସତର୍କ ସୂଚନା</h4>
+            <p class="advisory-text" id="advisoryMessage">
+              ସତର୍କ ସୂଚନା! ବାତ୍ୟା ଦାନା ଲ୍ୟାଣ୍ଡଫଲ୍ ପୂର୍ବରୁ ଧାମରା, ଭଦ୍ରକ ଏବଂ ବାସୁଦେବପୁର ଉପକୂଳରେ ୩.୬ ମିଟର ଉଚ୍ଚ ଜୁଆର ମାଡ଼ିଆସିବାର ଆଶଙ୍କା ରହିଛି...
+            </p>
+            
+            <!-- Audio Playback Controller -->
+            <div class="audio-control-bar">
+              <button id="btnPlayAudio" class="btn-audio-speak" aria-label="Play spoken audio warning alert">
+                <span id="audioIcon" aria-hidden="true">🔊</span> <span id="audioText">Play Voice Warning</span>
+              </button>
+              <div id="audioWaveform" class="audio-wave-anim hidden" aria-hidden="true">
+                <span></span><span></span><span></span><span></span><span></span>
+              </div>
+            </div>
+
+            <!-- Multi-Channel Delivery Status -->
+            <div class="dispatch-channels-grid">
+              <div class="channel-pill">
+                <span class="channel-name">SMS Alert</span>
+                <span class="channel-count" id="statSms">3.2M Sent</span>
+              </div>
+              <div class="channel-pill">
+                <span class="channel-name">VHF Radio</span>
+                <span class="channel-count" id="statRadio">Ch. 16 Active</span>
+              </div>
+              <div class="channel-pill">
+                <span class="channel-name">Panchayat Sirens</span>
+                <span class="channel-count" id="statVoice">Activated</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </aside>
+
+    </main>
+
+    <!-- Modal for Gemini API Key Configuration -->
+    <div id="apiKeyModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3 id="modalTitle">Google Cloud / Gemini API Settings</h3>
+          <button id="btnCloseModal" class="btn-close" aria-label="Close modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p class="modal-desc">
+            Enter your Google Gemini API Key from Google AI Studio to enable live calls to <strong>Gemini 3.7 / 2.0 Flash</strong>.
+          </p>
+          <div class="input-group">
+            <label for="inputApiKey">Gemini API Key</label>
+            <input type="password" id="inputApiKey" placeholder="AIzaSy..." class="text-input" autocomplete="off" />
+          </div>
+          <div class="tip-box">
+            💡 <em>If left blank, Aegis seamlessly uses its integrated offline spatial reasoning engine so all live demos function with zero latency.</em>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="btnSaveApiKey" class="btn-accent">Save Key</button>
+          <button id="btnClearApiKey" class="btn-ghost">Clear</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

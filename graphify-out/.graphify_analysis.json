@@ -1,0 +1,181 @@
+{
+  "communities": {
+    "0": [
+      "package",
+      "package_dependencies",
+      "package_dependencies_leaflet",
+      "package_dependencies_lucide",
+      "package_description",
+      "package_devdependencies",
+      "package_devdependencies_vite",
+      "package_name",
+      "package_private",
+      "package_type",
+      "package_version",
+      "ref_leaflet",
+      "ref_lucide",
+      "ref_path",
+      "ref_vite",
+      "vite_config",
+      "vite_config_manualchunks"
+    ],
+    "1": [
+      "src_data_brics_scenarios",
+      "src_data_brics_scenarios_brics_basins",
+      "src_engine_gemini_reasoning",
+      "src_engine_gemini_reasoning_geminireasoningengine",
+      "src_engine_gemini_reasoning_geminireasoningengine_buildprompt",
+      "src_engine_gemini_reasoning_geminireasoningengine_callgeminiapi",
+      "src_engine_gemini_reasoning_geminireasoningengine_constructor",
+      "src_engine_gemini_reasoning_geminireasoningengine_generatesimulatedreasoning",
+      "src_engine_gemini_reasoning_geminireasoningengine_runmultimodalanalysis",
+      "src_engine_gemini_reasoning_geminireasoningengine_setapikey",
+      "src_engine_report_generator",
+      "src_engine_report_generator_reportgenerator",
+      "src_engine_report_generator_reportgenerator_downloadreport",
+      "src_engine_report_generator_reportgenerator_generatesitrep",
+      "src_main"
+    ],
+    "2": [
+      "src_main_resilicoastapp",
+      "src_main_resilicoastapp_constructor",
+      "src_main_resilicoastapp_currentbasin",
+      "src_main_resilicoastapp_currentstep",
+      "src_main_resilicoastapp_exposedassets",
+      "src_main_resilicoastapp_init",
+      "src_main_resilicoastapp_initmap",
+      "src_main_resilicoastapp_loadbasin",
+      "src_main_resilicoastapp_triggergeminianalysis"
+    ],
+    "3": [
+      "src_engine_surge_physics",
+      "src_engine_surge_physics_surgephysicsengine",
+      "src_engine_surge_physics_surgephysicsengine_assessassetexposure",
+      "src_engine_surge_physics_surgephysicsengine_constructor",
+      "src_engine_surge_physics_surgephysicsengine_destinationpoint",
+      "src_engine_surge_physics_surgephysicsengine_generatesurgepolygon",
+      "src_engine_surge_physics_surgephysicsengine_haversinedistance"
+    ],
+    "4": [
+      "src_main_resilicoastapp_bindevents",
+      "src_main_resilicoastapp_generatesitrepdownload",
+      "src_main_resilicoastapp_rendercone",
+      "src_main_resilicoastapp_rendersurge",
+      "src_main_resilicoastapp_settimestep",
+      "src_main_resilicoastapp_toggleaudiobroadcast",
+      "src_main_resilicoastapp_toggleplayback"
+    ],
+    "5": [
+      "src_engine_advisory_dispatcher",
+      "src_engine_advisory_dispatcher_advisorydispatcher",
+      "src_engine_advisory_dispatcher_advisorydispatcher_constructor",
+      "src_engine_advisory_dispatcher_advisorydispatcher_getadvisories",
+      "src_engine_advisory_dispatcher_advisorydispatcher_speakadvisory",
+      "src_engine_advisory_dispatcher_advisorydispatcher_stopspeaking"
+    ],
+    "6": [
+      "src_main_resilicoastapp_rendergeeraster",
+      "src_main_resilicoastapp_renderinfrastructure",
+      "src_main_resilicoastapp_rendertrack",
+      "src_main_resilicoastapp_updateadvisorydisplay",
+      "src_main_resilicoastapp_updateinfrastructurelist",
+      "src_main_resilicoastapp_updateui"
+    ],
+    "7": [
+      "package_scripts",
+      "package_scripts_build",
+      "package_scripts_dev",
+      "package_scripts_preview"
+    ]
+  },
+  "cohesion": {
+    "0": 0.11764705882352941,
+    "1": 0.19047619047619047,
+    "2": 0.3333333333333333,
+    "3": 0.38095238095238093,
+    "4": 0.3333333333333333,
+    "5": 0.4,
+    "6": 0.3333333333333333,
+    "7": 0.5
+  },
+  "gods": [
+    {
+      "id": "src_main_resilicoastapp",
+      "label": "ResiliCoastApp",
+      "degree": 22
+    },
+    {
+      "id": "src_engine_gemini_reasoning_geminireasoningengine",
+      "label": "GeminiReasoningEngine",
+      "degree": 9
+    },
+    {
+      "id": "src_engine_surge_physics_surgephysicsengine",
+      "label": "SurgePhysicsEngine",
+      "degree": 8
+    },
+    {
+      "id": "src_engine_advisory_dispatcher_advisorydispatcher",
+      "label": "AdvisoryDispatcher",
+      "degree": 7
+    },
+    {
+      "id": "src_engine_report_generator_reportgenerator",
+      "label": "ReportGenerator",
+      "degree": 5
+    },
+    {
+      "id": "package_scripts",
+      "label": "scripts",
+      "degree": 4
+    },
+    {
+      "id": "ref_leaflet",
+      "label": "leaflet",
+      "degree": 2
+    },
+    {
+      "id": "ref_vite",
+      "label": "vite",
+      "degree": 2
+    },
+    {
+      "id": "src_data_brics_scenarios_brics_basins",
+      "label": "BRICS_BASINS",
+      "degree": 2
+    },
+    {
+      "id": "package_dependencies_leaflet",
+      "label": "leaflet",
+      "degree": 1
+    }
+  ],
+  "surprises": [],
+  "questions": [
+    {
+      "type": "bridge_node",
+      "question": "Why does `ResiliCoastApp` connect `ResiliCoast Application` to `BRICS Basin Analysis`, `Surge Visualization Controls`, `Map Rendering & UI Updates`?",
+      "why": "High betweenness centrality (0.444) - this node is a cross-community bridge."
+    },
+    {
+      "type": "bridge_node",
+      "question": "Why does `leaflet` connect `Project Configuration` to `BRICS Basin Analysis`?",
+      "why": "High betweenness centrality (0.414) - this node is a cross-community bridge."
+    },
+    {
+      "type": "bridge_node",
+      "question": "Why does `GeminiReasoningEngine` connect `BRICS Basin Analysis` to `ResiliCoast Application`?",
+      "why": "High betweenness centrality (0.166) - this node is a cross-community bridge."
+    },
+    {
+      "type": "isolated_nodes",
+      "question": "What connects `leaflet`, `lucide`, `description` to the rest of the system?",
+      "why": "12 weakly-connected nodes found - possible documentation gaps or missing edges."
+    },
+    {
+      "type": "low_cohesion",
+      "question": "Should `Project Configuration` be split into smaller, more focused modules?",
+      "why": "Cohesion score 0.11764705882352941 - nodes in this community are weakly interconnected."
+    }
+  ]
+}

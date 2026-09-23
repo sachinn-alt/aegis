@@ -1,0 +1,15 @@
+# ResiliCoast — BRICS Predictive Cyclone & Infrastructure Forecaster
+
+> ResiliCoast is a predictive coastal disaster intelligence and critical infrastructure vulnerability platform designed for disaster management authorities across BRICS nations (India, South Africa, Brazil, China). Powered by Google Earth Engine (GEE) satellite telemetry, hydrodynamic storm surge modeling, and Gemini 3.7 Flash multimodal spatial reasoning.
+
+## Core Capabilities
+- **Multi-Basin Coastal Modeling:** Pre-configured scenarios for Bay of Bengal (India - Cyclone Dana/Fani), Southwest Indian Ocean (South Africa - Cyclone Freddy), South Atlantic (Brazil - Rio Grande do Sul Surge), and South China Sea (China - Typhoon Doksuri).
+- **Physics-Based Storm Surge Simulation:** Dynamic water level anomaly calculation from central pressure deficit, maximum sustained winds, and coastal shelf bathymetry.
+- **Critical Infrastructure Vulnerability:** Real-time impact tracking on power grids, district hospitals, evacuation shelters, and arterial highways.
+- **Gemini 3.7 Flash Reasoning:** Autonomous synthesis of cascading infrastructure failure pathways, prioritized anticipatory actions, and parametric disaster insurance triggers.
+- **Multilingual Early-Warning Dispatch:** Automated vernacular advisories across 8 languages (Odia, Bengali, Hindi, Telugu, isiZulu, Portuguese, Mandarin, English) with voice broadcast.
+- **Executive SITREP Generator:** Instant Situation Report generation for District Emergency Operations Centers (DEOC) and State Cabinets.
+
+## Canonical Domain
+- URL: https://resilicoast.brics-resilience.org/
+- Organization: BRICS Disaster Resilience Network / National Disaster Management Authority

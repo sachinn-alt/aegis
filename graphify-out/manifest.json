@@ -1,0 +1,50 @@
+{
+  "package.json": {
+    "mtime": 1790147767.075037,
+    "seen": 1790150259.6406689,
+    "ast_hash": "d876fb6aeee13274859137a1fb6d5a5c",
+    "semantic_hash": "d876fb6aeee13274859137a1fb6d5a5c"
+  },
+  "src/data/brics_scenarios.js": {
+    "mtime": 1790147820.080307,
+    "seen": 1790150259.640676,
+    "ast_hash": "ff504938f6adeac2710cfe3982eb07e2",
+    "semantic_hash": "ff504938f6adeac2710cfe3982eb07e2"
+  },
+  "src/engine/advisory_dispatcher.js": {
+    "mtime": 1790147879.8086016,
+    "seen": 1790150259.6406794,
+    "ast_hash": "5fe020496c2ff509fa5cf23df51b5ed2",
+    "semantic_hash": "5fe020496c2ff509fa5cf23df51b5ed2"
+  },
+  "src/engine/gemini_reasoning.js": {
+    "mtime": 1790147862.6782157,
+    "seen": 1790150259.6406815,
+    "ast_hash": "0649a4d5ac2192e3df4671618649373f",
+    "semantic_hash": "0649a4d5ac2192e3df4671618649373f"
+  },
+  "src/engine/report_generator.js": {
+    "mtime": 1790147899.907638,
+    "seen": 1790150259.6406834,
+    "ast_hash": "8ff17e4afa5923523c6c84a9405d6639",
+    "semantic_hash": "8ff17e4afa5923523c6c84a9405d6639"
+  },
+  "src/engine/surge_physics.js": {
+    "mtime": 1790147838.9677324,
+    "seen": 1790150259.6406853,
+    "ast_hash": "3b0dc1aec883181692005fb82553f4c7",
+    "semantic_hash": "3b0dc1aec883181692005fb82553f4c7"
+  },
+  "src/main.js": {
+    "mtime": 1790148388.2397356,
+    "seen": 1790150259.640687,
+    "ast_hash": "cd025911c5cea70d4a5609786efbcf1a",
+    "semantic_hash": "cd025911c5cea70d4a5609786efbcf1a"
+  },
+  "vite.config.js": {
+    "mtime": 1790148917.4201324,
+    "seen": 1790150259.6406884,
+    "ast_hash": "bbdf800d5c252ec56dd465bae6901a8d",
+    "semantic_hash": "bbdf800d5c252ec56dd465bae6901a8d"
+  }
+}

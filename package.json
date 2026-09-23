@@ -1,0 +1,19 @@
+{
+  "name": "aegis",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Predictive Cyclone Impact & Critical Infrastructure Vulnerability Forecaster for BRICS Nations",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host --port 5173",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "leaflet": "^1.9.4",
+    "lucide": "^0.475.0"
+  },
+  "devDependencies": {
+    "vite": "^6.1.0"
+  }
+}

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>404 — Sector Out of Telemetry Range | Aegis</title>
+  <meta name="description" content="The requested disaster intelligence page or coastal coordinates could not be located on the Aegis BRICS network." />
+  <link rel="canonical" href="https://aegis.brics-resilience.org/404.html" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg-primary: #070a12;
+      --bg-surface: #0e1424;
+      --accent-cyan: #00f0ff;
+      --status-critical: #ff2a5f;
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 24px;
+      background-image: radial-gradient(circle at 50% 50%, rgba(255, 42, 95, 0.08) 0%, transparent 60%);
+    }
+    .breadcrumbs {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+    }
+    .breadcrumbs a { color: var(--accent-cyan); text-decoration: none; }
+    .breadcrumbs a:hover { text-decoration: underline; }
+    .error-code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 7rem;
+      font-weight: 800;
+      color: var(--status-critical);
+      text-shadow: 0 0 30px rgba(255, 42, 95, 0.4);
+      line-height: 1;
+      margin-bottom: 12px;
+    }
+    h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      margin-bottom: 16px;
+      color: #ffffff;
+    }
+    p {
+      color: var(--text-secondary);
+      max-width: 520px;
+      line-height: 1.6;
+      margin-bottom: 32px;
+      font-size: 0.95rem;
+    }
+    .action-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      border: 1px solid var(--accent-cyan);
+      color: #ffffff;
+      padding: 12px 24px;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.9rem;
+      box-shadow: 0 0 16px rgba(0, 240, 255, 0.25);
+      transition: all 0.2s;
+    }
+    .action-btn:hover {
+      box-shadow: 0 0 24px rgba(0, 240, 255, 0.5);
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+<body>
+  <!-- Breadcrumb Navigation -->
+  <nav class="breadcrumbs" aria-label="Breadcrumb">
+    <a href="/">National EOC</a> &gt; <span>Telemetry Range</span> &gt; <span>404 Lost Signal</span>
+  </nav>
+
+  <div class="error-code">404</div>
+  <h1>COASTAL SECTOR OUT OF TELEMETRY RANGE</h1>
+  <p>
+    The requested disaster simulation dataset, radar channel, or coordinate boundary could not be acquired by the satellite network.
+  </p>
+  <a href="/" class="action-btn">
+    <span>🌀</span> Return to Emergency Operations Center
+  </a>
+</body>
+</html>
