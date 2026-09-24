@@ -42,18 +42,23 @@ class AegisApp {
     this.currentBasemap = "dark";
     this.basemaps = {
       dark: {
-        base: "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}",
-        labels: "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}",
-        attribution: "Tiles &copy; Esri Dark"
+        base: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+        subdomains: "abcd",
+        maxZoom: 20,
+        attribution: "&copy; OpenStreetMap &copy; CARTO"
       },
       satellite: {
         base: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-        labels: "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}",
+        labels: "https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png",
+        subdomains: "abcd",
+        maxNativeZoom: 18,
+        maxZoom: 20,
         attribution: "Source: Esri, Maxar, Earthstar Geographics"
       },
       topo: {
         base: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}",
-        labels: null,
+        maxNativeZoom: 16,
+        maxZoom: 19,
         attribution: "Tiles &copy; Esri Topo"
       }
     };
@@ -514,10 +519,10 @@ class AegisApp {
 
     const coords = this.currentBasin.timeSteps.map(s => s.eyeCoord);
     this.mapLayers.trackPolyline = L.polyline(coords, {
-      color: "#ff2a5f",
+      color: "#FF3000",
       weight: 3,
-      opacity: 0.75,
-      dashArray: "6, 8"
+      opacity: 1.0,
+      dashArray: "4, 6"
     }).addTo(this.map);
 
     // Animated Pulsing Vortex Marker
@@ -534,12 +539,15 @@ class AegisApp {
     this.mapLayers.eyeMarker = L.marker(this.currentStep.eyeCoord, { icon: eyeIcon })
       .addTo(this.map)
       .bindPopup(`
-        <div style="font-family: 'Outfit', sans-serif; font-size: 13px; color: #000; min-width: 180px;">
-          <strong style="color: #ff2a5f; font-size: 14px;">${this.currentBasin.stormName}</strong><br/>
-          <strong>Horizon:</strong> ${this.currentStep.label}<br/>
-          <strong>Winds:</strong> ${this.currentStep.maxWindSpeedKmph} km/h<br/>
-          <strong>Surge:</strong> ${this.currentStep.surgeHeightM}m<br/>
-          <strong>Pressure:</strong> ${this.currentStep.centralPressureHpa} hPa
+        <div style="font-family: var(--font-swiss); font-size: 12px; color: #000000; min-width: 190px; text-transform: uppercase;">
+          <div style="font-size: 10px; font-weight: 900; color: #FF3000; letter-spacing: 0.08em; margin-bottom: 2px;">01. CYCLONE TELEMETRY</div>
+          <strong style="font-size: 15px; font-weight: 900; color: #000000; letter-spacing: -0.02em;">${this.currentBasin.stormName}</strong>
+          <div style="margin-top: 4px; padding-top: 4px; border-top: 1px solid #000000; font-family: var(--text-mono); font-size: 11px;">
+            <div><strong>HORIZON:</strong> ${this.currentStep.label}</div>
+            <div><strong>WINDS:</strong> ${this.currentStep.maxWindSpeedKmph} KM/H</div>
+            <div><strong>SURGE:</strong> ${this.currentStep.surgeHeightM}M</div>
+            <div><strong>PRESSURE:</strong> ${this.currentStep.centralPressureHpa} HPA</div>
+          </div>
         </div>
       `);
   }
@@ -579,11 +587,11 @@ class AegisApp {
     );
 
     this.mapLayers.surgePolygon = L.polygon(surgePoints, {
-      color: "#00f0ff",
+      color: "#000000",
       weight: 2,
-      fillColor: "#0077ff",
-      fillOpacity: 0.38,
-      dashArray: "3, 5"
+      fillColor: "#FF3000",
+      fillOpacity: 0.28,
+      dashArray: "4, 4"
     }).addTo(this.map);
   }
 
@@ -603,11 +611,11 @@ class AegisApp {
     ];
 
     this.mapLayers.geeRasterOverlay = L.rectangle(bounds, {
-      color: "#00ffaa",
+      color: "#000000",
       weight: 1,
       dashArray: "4, 6",
-      fillColor: "#00f0ff",
-      fillOpacity: 0.15
+      fillColor: "#000000",
+      fillOpacity: 0.08
     }).addTo(this.map);
   }
 
@@ -642,15 +650,18 @@ class AegisApp {
       const marker = L.marker(asset.coords, { icon: pinIcon })
         .addTo(this.mapLayers.infraGroup)
         .bindPopup(`
-          <div style="font-family: 'Outfit', sans-serif; font-size: 13px; color: #000; min-width: 220px;">
-            <strong style="font-size: 14px; color: #0f172a;">${asset.name}</strong><br/>
-            <span style="display:inline-block; margin: 4px 0; padding: 2px 6px; border-radius: 4px; font-weight: bold; background: #e2e8f0; font-size: 11px;">
+          <div style="font-family: var(--font-swiss); font-size: 12px; color: #000000; min-width: 230px; text-transform: uppercase;">
+            <div style="font-size: 10px; font-weight: 900; color: #FF3000; letter-spacing: 0.08em; margin-bottom: 2px;">03. CRITICAL ASSET</div>
+            <strong style="font-size: 14px; font-weight: 900; color: #000000;">${asset.name}</strong><br/>
+            <span style="display:inline-block; margin: 4px 0; padding: 2px 6px; font-weight: 900; background: #000000; color: #FFFFFF; font-size: 10px; letter-spacing: 0.05em;">
               STATUS: ${asset.currentStatus}
             </span><br/>
-            <strong>Elevation:</strong> ${asset.elevationM}m MSL<br/>
-            <strong>Surge Exposure:</strong> Depth +${asset.inundationDepthM}m<br/>
-            <strong>Capacity:</strong> ${asset.capacity}<br/>
-            <p style="margin-top: 6px; font-size: 12px; color: #334155;">${asset.impactDescription}</p>
+            <div style="font-family: var(--text-mono); font-size: 11px; margin-top: 4px;">
+              <div><strong>ELEVATION:</strong> ${asset.elevationM}M MSL</div>
+              <div><strong>SURGE EXPOSURE:</strong> +${asset.inundationDepthM}M</div>
+              <div><strong>CAPACITY:</strong> ${asset.capacity}</div>
+            </div>
+            <p style="margin-top: 6px; font-size: 11px; color: #262626; text-transform: none; line-height: 1.35; border-top: 1px solid #000000; padding-top: 4px;">${asset.impactDescription}</p>
           </div>
         `);
     });
@@ -671,17 +682,24 @@ class AegisApp {
     }
 
     const cfg = this.basemaps[type];
-    this.mapLayers.base = L.tileLayer(cfg.base, {
-      maxZoom: 18,
+    const tileOptions = {
+      maxZoom: cfg.maxZoom || 19,
       attribution: cfg.attribution
-    }).addTo(this.map);
+    };
+    if (cfg.subdomains) tileOptions.subdomains = cfg.subdomains;
+    if (cfg.maxNativeZoom) tileOptions.maxNativeZoom = cfg.maxNativeZoom;
+
+    this.mapLayers.base = L.tileLayer(cfg.base, tileOptions).addTo(this.map);
     this.mapLayers.base.bringToBack();
 
     if (cfg.labels) {
-      this.mapLayers.labels = L.tileLayer(cfg.labels, {
-        maxZoom: 18,
+      const labelOptions = {
+        maxZoom: cfg.maxZoom || 19,
         opacity: 0.85
-      }).addTo(this.map);
+      };
+      if (cfg.subdomains) labelOptions.subdomains = cfg.subdomains;
+      if (cfg.maxNativeZoom) labelOptions.maxNativeZoom = cfg.maxNativeZoom;
+      this.mapLayers.labels = L.tileLayer(cfg.labels, labelOptions).addTo(this.map);
     }
 
     document.querySelectorAll(".btn-basemap-option").forEach(btn => {
@@ -805,7 +823,7 @@ class AegisApp {
       .replace(/\n-/g, "<br/>•");
 
     content.innerHTML = `
-      <div style="font-size: 0.68rem; color: #00f0ff; font-family: var(--text-mono); margin-bottom: 8px;">
+      <div style="font-size: 0.68rem; color: #000000; font-family: var(--text-mono); font-weight: 700; margin-bottom: 8px; border-bottom: 1px solid #000000; padding-bottom: 3px;">
         ENGINE: ${result.source} | ${result.timestamp}
       </div>
       <p>${formatted}</p>
@@ -965,8 +983,8 @@ class AegisApp {
             <span class="asset-name" style="max-width: 280px;"><strong>${item.id}</strong> — ${item.locationName}</span>
             <span class="asset-status-pill status-critical">${item.priority.code} (Score: ${item.triageScore})</span>
           </div>
-          <div class="asset-desc" style="color: #cbd5e1;">${item.description}</div>
-          <div style="font-size: 0.6rem; color: #00f0ff; font-family: var(--text-mono); margin-top: 2px;">
+          <div class="asset-desc" style="color: #262626;">${item.description}</div>
+          <div style="font-size: 0.6rem; color: #000000; font-family: var(--text-mono); font-weight: 700; margin-top: 2px;">
             Source: ${item.source} · State: ${item.status} · Persons: ${item.affectedPersons}
           </div>
         `;

@@ -30,10 +30,10 @@
   <!-- Tabler Icons Webfont -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css" />
 
-  <!-- Google Fonts: Outfit & JetBrains Mono -->
+  <!-- Google Fonts: Inter (Swiss Grotesque) & JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
   
   <link rel="stylesheet" href="/style.css" />
 
@@ -102,8 +102,8 @@
   }
   </script>
 </head>
-<body class="theme-tactical-dark">
-  <div id="app" class="eoc-dashboard">
+<body class="theme-swiss">
+  <div id="app" class="eoc-dashboard swiss-noise">
     
     <!-- Top Navigation Header -->
     <header class="eoc-header">
@@ -115,10 +115,10 @@
         <div class="brand-text">
           <div class="title-row">
             <h1 class="brand-title">AEGIS</h1>
-            <span class="brics-pill">BRICS RESILIENCE</span>
+            <span class="brics-pill">SYS.01 // BRICS RESILIENCE</span>
           </div>
           <div class="eoc-breadcrumbs" aria-label="Status tag">
-            <span class="crumb-current">EOC · Live Grid</span>
+            <span class="crumb-current">NATIONAL EOC // OPERATIONAL COMMAND</span>
           </div>
         </div>
       </div>
@@ -181,9 +181,9 @@
     <main class="eoc-main">
       
       <!-- Left Panel: Storm Physics & Telemetry HUD -->
-      <aside class="panel left-panel" id="leftPanel" aria-label="Storm Telemetry & Layer Controls">
+      <aside class="panel left-panel swiss-grid-pattern" id="leftPanel" aria-label="Storm Telemetry & Layer Controls">
         <div class="panel-top-bar">
-          <span class="panel-top-title"><i class="ti ti-gauge"></i> TELEMETRY HUD</span>
+          <span class="panel-top-title"><i class="ti ti-gauge"></i> <span class="swiss-num">01.</span> TELEMETRY HUD</span>
           <button id="btnToggleLeftPanel" class="btn-panel-toggle" title="Collapse Telemetry Sidebar" aria-label="Collapse Telemetry Sidebar">
             <i class="ti ti-chevron-left"></i>
           </button>
@@ -241,7 +241,7 @@
 
         <!-- Layer Toggles Section -->
         <div class="panel-section layer-controls-card">
-          <h3 class="section-heading"><i class="ti ti-layers-intersect"></i> TACTICAL GIS OVERLAYS</h3>
+          <h3 class="section-heading"><i class="ti ti-layers-intersect"></i> <span class="swiss-num">02.</span> TACTICAL OVERLAYS</h3>
           <div class="layer-toggle-list">
             <label class="toggle-item">
               <input type="checkbox" id="layerLiveRadar" aria-label="Toggle Live Doppler Weather Radar" />
@@ -284,7 +284,7 @@
         <!-- Infrastructure Status Snapshot (Collapsible Micro-Data Accordion) -->
         <div class="panel-section infrastructure-mini-list" id="assetMiniCard">
           <div class="section-header-row">
-            <h3 class="section-heading"><i class="ti ti-shield-alert"></i> ASSET EXPOSURE</h3>
+            <h3 class="section-heading"><i class="ti ti-shield-alert"></i> <span class="swiss-num">03.</span> ASSET EXPOSURE</h3>
             <div class="header-tools">
               <span class="threat-counter" id="threatCountBadge">4 At Risk</span>
               <button id="btnToggleAssetAccordion" class="btn-section-toggle" title="Toggle Asset Micro-List" aria-label="Toggle Asset Micro-List">
@@ -343,7 +343,7 @@
 
         <!-- Floating Map Legend -->
         <div class="map-legend-overlay" aria-label="Map Legend">
-          <div class="legend-title">RISK LEVELS</div>
+          <div class="legend-title"><span class="swiss-num">REF.</span> RISK TAXONOMY</div>
           <div class="legend-row"><span class="legend-color-dot dot-critical" aria-hidden="true"></span> Submerged / Failed</div>
           <div class="legend-row"><span class="legend-color-dot dot-high" aria-hidden="true"></span> Critical Alert / Cut Off</div>
           <div class="legend-row"><span class="legend-color-dot dot-warning" aria-hidden="true"></span> Backup Power / Monitored</div>
@@ -354,7 +354,7 @@
         <div class="time-scrubber-dock" role="toolbar" aria-label="Simulation Time Scrubber">
           <div class="scrubber-header">
             <div class="time-readout">
-              <span class="label">TIMELINE:</span>
+              <span class="label"><span class="swiss-num">04.</span> TIMELINE:</span>
               <span id="activeTimeStepLabel" class="active-step-badge">T-24h (24h Before Landfall)</span>
             </div>
             <div class="playback-controls">
@@ -379,9 +379,9 @@
       </section>
 
       <!-- Right Panel: Gemini 3.7 Flash & Action Center -->
-      <aside class="panel right-panel" id="rightPanel" aria-label="Gemini Reasoning & Multilingual Dispatch">
+      <aside class="panel right-panel swiss-grid-pattern" id="rightPanel" aria-label="Gemini Reasoning & Multilingual Dispatch">
         <div class="panel-top-bar right-top-bar">
-          <span class="panel-top-title"><i class="ti ti-brain"></i> EOC INTELLIGENCE</span>
+          <span class="panel-top-title"><i class="ti ti-brain"></i> <span class="swiss-num">05.</span> SPATIAL INTELLIGENCE</span>
           <button id="btnToggleRightPanel" class="btn-panel-toggle" title="Collapse Intel Sidebar" aria-label="Collapse Intel Sidebar">
             <i class="ti ti-chevron-right"></i>
           </button>
@@ -416,7 +416,7 @@
         <!-- Multilingual Early-Warning Advisory Dispatcher -->
         <div class="panel-section advisory-card">
           <div class="advisory-header-row">
-            <h3 class="section-heading"><i class="ti ti-bell-ringing"></i> EARLY-WARNING</h3>
+            <h3 class="section-heading"><i class="ti ti-bell-ringing"></i> <span class="swiss-num">06.</span> EARLY-WARNING</h3>
             <div class="lang-selector-group">
               <label for="advisoryLangSelect" class="sr-only">Advisory Language</label>
               <select id="advisoryLangSelect" class="lang-dropdown" aria-label="Select Advisory Broadcast Language">
