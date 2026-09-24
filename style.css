@@ -416,7 +416,7 @@ button:active {
 }
 
 /* ==========================================================================
-   Main Grid Workspace & Glassmorphic Panels
+   Main Grid Workspace & Collapsible Glassmorphic Panels
    ========================================================================== */
 
 .eoc-main {
@@ -426,6 +426,22 @@ button:active {
   width: 100%;
   overflow: hidden;
   background-color: transparent;
+  transition: grid-template-columns var(--motion-duration-normal) var(--motion-spring);
+  position: relative;
+}
+
+/* Collapsible Sidebars for Full Common Operating Picture (COP) */
+.eoc-dashboard.collapse-left .eoc-main {
+  grid-template-columns: 0px 1fr 300px;
+}
+
+.eoc-dashboard.collapse-right .eoc-main {
+  grid-template-columns: 270px 1fr 0px;
+}
+
+.eoc-dashboard.collapse-left.collapse-right .eoc-main,
+.eoc-dashboard.full-cop .eoc-main {
+  grid-template-columns: 0px 1fr 0px;
 }
 
 .panel {
@@ -438,6 +454,27 @@ button:active {
   flex-direction: column;
   gap: 8px;
   z-index: 500;
+  transition: padding var(--motion-duration-fast) ease, opacity var(--motion-duration-fast) ease;
+}
+
+.eoc-dashboard.collapse-left #leftPanel {
+  padding: 0;
+  width: 0;
+  min-width: 0;
+  border-right: none;
+  opacity: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.eoc-dashboard.collapse-right #rightPanel {
+  padding: 0;
+  width: 0;
+  min-width: 0;
+  border-left: none;
+  opacity: 0;
+  pointer-events: none;
+  overflow: hidden;
 }
 
 .left-panel {
@@ -446,6 +483,403 @@ button:active {
 
 .right-panel {
   border-left: 1px solid var(--border-subtle);
+}
+
+/* Panel Header Controls */
+.panel-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2px 6px 2px;
+  border-bottom: 1px solid var(--border-subtle);
+  margin-bottom: 2px;
+}
+
+.panel-top-title {
+  font-family: var(--text-mono);
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  color: var(--accent-cyan);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.btn-panel-toggle {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  border-radius: var(--radius-xs);
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s var(--motion-spring);
+}
+
+.btn-panel-toggle:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--accent-cyan);
+  color: #ffffff;
+  transform: scale(1.05);
+}
+
+/* Floating Sidebar Restore Pills on Map */
+.floating-panel-restore {
+  position: absolute;
+  top: 14px;
+  z-index: 600;
+  background: rgba(11, 18, 34, 0.94);
+  border: 1px solid var(--border-tactical);
+  color: var(--accent-cyan);
+  padding: 5px 10px;
+  border-radius: var(--radius-xs);
+  font-family: var(--text-mono);
+  font-size: 0.66rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+  transition: all var(--motion-duration-fast) var(--motion-spring);
+  backdrop-filter: blur(12px);
+}
+
+.floating-panel-restore:hover {
+  background: rgba(0, 240, 255, 0.15);
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 16px rgba(0, 240, 255, 0.35);
+  transform: translateY(-1px);
+}
+
+.floating-panel-restore.left-restore {
+  left: 14px;
+}
+
+.floating-panel-restore.right-restore {
+  right: 14px;
+}
+
+.floating-panel-restore.hidden {
+  display: none !important;
+}
+
+/* Micro-Data Accordion Controls */
+.header-tools {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-section-toggle {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  border-radius: var(--radius-xs);
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-section-toggle:hover {
+  border-color: var(--accent-cyan);
+  color: #ffffff;
+}
+
+.infrastructure-mini-list.collapsed .asset-scroll-list {
+  display: none !important;
+}
+
+/* SSE Chip */
+.sse-chip {
+  background: rgba(14, 165, 233, 0.14);
+  border: 1px solid rgba(14, 165, 233, 0.4);
+  color: #38bdf8;
+}
+
+.sse-chip .indicator-dot {
+  background-color: #38bdf8;
+}
+
+/* Live Stream Status Change Alert Banner */
+.live-stream-alert {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  min-width: 440px;
+  max-width: 80%;
+  background: rgba(10, 16, 30, 0.96);
+  border: 1px solid #ff2a5f;
+  border-left: 4px solid #ff2a5f;
+  border-radius: var(--radius-xs);
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.75), 0 0 16px rgba(255, 42, 95, 0.3);
+  backdrop-filter: blur(20px);
+  animation: slideAlertDown 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.2s ease;
+}
+
+.live-stream-alert.warning {
+  border-color: #f59e0b;
+  border-left-color: #f59e0b;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.75), 0 0 16px rgba(245, 158, 11, 0.3);
+}
+
+.live-stream-alert.hidden {
+  display: none !important;
+}
+
+@keyframes slideAlertDown {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -16px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+.alert-pulse-icon {
+  font-size: 1.1rem;
+  color: #ff2a5f;
+  display: flex;
+  align-items: center;
+  animation: pulseBlink 1.2s infinite alternate;
+}
+
+.live-stream-alert.warning .alert-pulse-icon {
+  color: #f59e0b;
+}
+
+.alert-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.alert-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.alert-badge-live {
+  font-family: var(--text-mono);
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  background: var(--status-critical-bg);
+  color: #ff527c;
+  padding: 1px 6px;
+  border-radius: var(--radius-xs);
+  border: 1px solid rgba(255, 42, 95, 0.4);
+}
+
+.live-stream-alert.warning .alert-badge-live {
+  background: var(--status-high-bg);
+  color: #fbbf24;
+  border-color: rgba(245, 158, 11, 0.4);
+}
+
+.alert-timestamp {
+  font-family: var(--text-mono);
+  font-size: 0.6rem;
+  color: var(--text-muted);
+}
+
+.alert-message {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: #ffffff;
+  line-height: 1.3;
+}
+
+.alert-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.btn-alert-ack {
+  background: #ff2a5f;
+  color: #ffffff;
+  font-family: var(--text-mono);
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  padding: 4px 9px;
+  border-radius: var(--radius-xs);
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-alert-ack:hover {
+  background: #ff527c;
+  transform: translateY(-1px);
+}
+
+.btn-alert-mute {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-xs);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.btn-alert-mute:hover {
+  color: #ffffff;
+  border-color: var(--accent-cyan);
+}
+
+/* ==========================================================================
+   Operational EOC High-Contrast Mode (Bunker / Backup Generator Protocol)
+   Strict Functional Color Coding: Red = Critical, Amber = Pending, Green = Clear
+   WCAG AAA Compliant · High Contrast on Low-Illumination EOC Screens
+   ========================================================================== */
+
+body.theme-high-contrast {
+  --bg-primary: #000000;
+  --bg-surface: #070b14;
+  --bg-card: #090e1c;
+  --bg-card-hover: #0f172a;
+  --bg-card-active: #1e293b;
+
+  --border-subtle: #475569;
+  --border-medium: #64748b;
+  --border-tactical: #94a3b8;
+  --border-tactical-glow: #cbd5e1;
+
+  --text-primary: #ffffff;
+  --text-secondary: #f8fafc;
+  --text-muted: #cbd5e1;
+
+  --status-critical: #ef4444;
+  --status-critical-bg: #dc2626;
+  --status-critical-glow: none;
+
+  --status-high: #f59e0b;
+  --status-high-bg: #d97706;
+  --status-high-glow: none;
+
+  --status-warning: #fbbf24;
+  --status-warning-bg: #b45309;
+
+  --status-safe: #10b981;
+  --status-safe-bg: #059669;
+  --status-safe-glow: none;
+
+  --shadow-hud: 0 0 0 1px #475569;
+  --shadow-glow-cyan: none;
+  background-image: none !important;
+}
+
+body.theme-high-contrast .panel {
+  background: #070c18 !important;
+  border-color: #475569 !important;
+}
+
+body.theme-high-contrast .panel-section {
+  background: #090e1c !important;
+  border-color: #475569 !important;
+  box-shadow: none !important;
+}
+
+body.theme-high-contrast .panel-section::after {
+  display: none !important;
+}
+
+body.theme-high-contrast .eoc-header {
+  background: #000000 !important;
+  border-bottom: 2px solid #475569 !important;
+}
+
+body.theme-high-contrast .status-chip.live-alert {
+  background: #dc2626 !important;
+  color: #ffffff !important;
+  border: 1px solid #ef4444 !important;
+  font-weight: 800 !important;
+}
+
+body.theme-high-contrast .status-chip.gee-chip {
+  background: #059669 !important;
+  color: #ffffff !important;
+  border: 1px solid #10b981 !important;
+  font-weight: 800 !important;
+}
+
+body.theme-high-contrast .status-chip.sse-chip {
+  background: #0284c7 !important;
+  color: #ffffff !important;
+  border: 1px solid #38bdf8 !important;
+  font-weight: 800 !important;
+}
+
+body.theme-high-contrast .asset-status-pill.status-critical {
+  background: #dc2626 !important;
+  color: #ffffff !important;
+  border: 1px solid #ef4444 !important;
+  font-weight: 800 !important;
+}
+
+body.theme-high-contrast .asset-status-pill.status-high {
+  background: #d97706 !important;
+  color: #ffffff !important;
+  border: 1px solid #f59e0b !important;
+  font-weight: 800 !important;
+}
+
+body.theme-high-contrast .asset-status-pill.status-warning {
+  background: #b45309 !important;
+  color: #ffffff !important;
+  border: 1px solid #fbbf24 !important;
+  font-weight: 800 !important;
+}
+
+body.theme-high-contrast .asset-status-pill.status-safe {
+  background: #059669 !important;
+  color: #ffffff !important;
+  border: 1px solid #10b981 !important;
+  font-weight: 800 !important;
+}
+
+body.theme-high-contrast .metric-val {
+  color: #ffffff !important;
+  text-shadow: none !important;
+}
+
+body.theme-high-contrast .metric-label,
+body.theme-high-contrast .card-timestamp,
+body.theme-high-contrast .target-corridor-text {
+  color: #e2e8f0 !important;
+}
+
+body.theme-high-contrast .time-scrubber-dock {
+  background: #090e1c !important;
+  border: 2px solid #475569 !important;
 }
 
 /* Aceternity Glowing Card Base */

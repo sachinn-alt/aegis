@@ -13,6 +13,7 @@ import { NationalSystemAdapter } from "./engine/national_adapter.js";
 import { IncidentTriageEngine, IncidentPriority } from "./engine/incident_triage.js";
 import { ResourceTracker, ResourceCategory, ResourceStatus } from "./engine/resource_tracker.js";
 import { InterAgencyLogger } from "./engine/interagency_log.js";
+import { LiveStreamEngine } from "./engine/live_stream.js";
 
 class AegisApp {
   constructor() {
@@ -22,6 +23,10 @@ class AegisApp {
     this.playInterval = null;
     this.customBasins = {};
     this.isLowBandwidthMode = false;
+    this.isLeftCollapsed = false;
+    this.isRightCollapsed = false;
+    this.isHighContrast = false;
+    this.liveAlertTimer = null;
 
     this.activeLayers = {
       track: true,
@@ -40,6 +45,7 @@ class AegisApp {
     this.triage = new IncidentTriageEngine();
     this.resources = new ResourceTracker();
     this.logger = new InterAgencyLogger();
+    this.liveStream = new LiveStreamEngine({ intervalMs: 11000 });
 
     // Map & Layer References
     this.map = null;
@@ -84,6 +90,8 @@ class AegisApp {
   init() {
     this.initMap();
     this.bindEvents();
+    this.initLiveStream();
+    this.initUserPreferences();
     this.loadBasin(this.currentBasinKey);
   }
 
@@ -281,6 +289,53 @@ class AegisApp {
         this.handleGeoJsonUpload(e.dataTransfer.files[0]);
       }
     });
+
+    // Sidebar Collapse / Expand Toggles (Full COP)
+    const btnToggleLeft = document.getElementById("btnToggleLeftPanel");
+    if (btnToggleLeft) {
+      btnToggleLeft.addEventListener("click", () => this.toggleLeftPanel());
+    }
+    const btnExpandLeft = document.getElementById("btnExpandLeft");
+    if (btnExpandLeft) {
+      btnExpandLeft.addEventListener("click", () => this.toggleLeftPanel());
+    }
+
+    const btnToggleRight = document.getElementById("btnToggleRightPanel");
+    if (btnToggleRight) {
+      btnToggleRight.addEventListener("click", () => this.toggleRightPanel());
+    }
+    const btnExpandRight = document.getElementById("btnExpandRight");
+    if (btnExpandRight) {
+      btnExpandRight.addEventListener("click", () => this.toggleRightPanel());
+    }
+
+    const btnCopFocus = document.getElementById("btnCopFocus");
+    if (btnCopFocus) {
+      btnCopFocus.addEventListener("click", () => this.toggleFullCop());
+    }
+
+    // Micro-Data Accordion Toggle (Asset Exposure)
+    const btnToggleAssetAccordion = document.getElementById("btnToggleAssetAccordion");
+    if (btnToggleAssetAccordion) {
+      btnToggleAssetAccordion.addEventListener("click", () => this.toggleAssetAccordion());
+    }
+
+    // High-Contrast Bunker / Generator Mode Toggle
+    const btnToggleHighContrast = document.getElementById("btnToggleHighContrast");
+    if (btnToggleHighContrast) {
+      btnToggleHighContrast.addEventListener("click", () => this.toggleHighContrast());
+    }
+
+    // Live Stream Alert Banner Controls
+    const btnAckLiveAlert = document.getElementById("btnAckLiveAlert");
+    if (btnAckLiveAlert) {
+      btnAckLiveAlert.addEventListener("click", () => this.dismissLiveAlert());
+    }
+
+    const btnToggleStreamAudio = document.getElementById("btnToggleStreamAudio");
+    if (btnToggleStreamAudio) {
+      btnToggleStreamAudio.addEventListener("click", () => this.toggleStreamAudio());
+    }
   }
 
   loadBasin(basinKey) {
@@ -317,6 +372,12 @@ class AegisApp {
 
     this.updateUI();
     this.triggerGeminiAnalysis();
+
+    // Restart live telemetry stream for this basin scenario (Automated SSE pipeline)
+    if (this.liveStream) {
+      this.liveStream.disconnect();
+      this.liveStream.connect(basin, this.currentStep);
+    }
   }
 
   setTimeStep(stepIdx) {
@@ -870,6 +931,200 @@ class AegisApp {
       }
     };
     reader.readAsText(file);
+  }
+
+  // Real-Time Live Telemetry & Event Stream (Simulated SSE/WebSocket Engine)
+  initLiveStream() {
+    this.liveStream.on("connection", (data) => {
+      const statusEl = document.getElementById("sseStatusText");
+      if (statusEl) statusEl.textContent = "SSE LIVE";
+    });
+
+    this.liveStream.on("statusChange", (event) => {
+      this.handleLiveStatusChange(event);
+    });
+
+    this.liveStream.on("cadIncident", (event) => {
+      this.handleLiveCadIncident(event);
+    });
+
+    this.liveStream.on("telemetry", (event) => {
+      this.handleLiveTelemetryDelta(event);
+    });
+  }
+
+  handleLiveStatusChange(event) {
+    const banner = document.getElementById("liveStreamAlertBanner");
+    const badge = document.getElementById("liveAlertBadge");
+    const timeEl = document.getElementById("liveAlertTimestamp");
+    const msgEl = document.getElementById("liveAlertMessage");
+
+    if (banner && badge && timeEl && msgEl) {
+      badge.textContent = event.severity === "CRITICAL" ? "CRITICAL ALERT" : "MONITORED WARNING";
+      if (event.severity === "CRITICAL") {
+        banner.classList.remove("warning");
+      } else {
+        banner.classList.add("warning");
+      }
+      timeEl.textContent = event.timestamp;
+      msgEl.textContent = event.message;
+      banner.classList.remove("hidden");
+
+      // Auto-dismiss after 9 seconds if not manually acknowledged
+      clearTimeout(this.liveAlertTimer);
+      this.liveAlertTimer = setTimeout(() => {
+        this.dismissLiveAlert();
+      }, 9000);
+    }
+
+    // Dynamically update the asset in memory and refresh UI without full page refresh
+    const targetAsset = (this.currentBasin.infrastructure || []).find(a => a.id === event.assetId || a.name === event.assetName);
+    if (targetAsset) {
+      targetAsset.statusByStep[this.currentStep.step] = event.newStatus;
+      this.updateInfrastructureList();
+      this.renderInfrastructure();
+    }
+  }
+
+  handleLiveCadIncident(event) {
+    // Ingest into triage engine live
+    this.triage.ingestDistressCall({
+      callerName: "Automated 112/VHF Monitor",
+      callerPhone: "112-EOC",
+      locationName: event.location,
+      latitude: this.currentBasin.center[0] + (Math.random() - 0.5) * 0.35,
+      longitude: this.currentBasin.center[1] + (Math.random() - 0.5) * 0.35,
+      source: "CAD_LIVE_FEED",
+      description: event.description,
+      affectedPersons: event.affectedPersons,
+      immediateHazards: ["Rapid Surge Flood", "Power Loss"],
+      reportsWaterRising: true,
+      requiresBoat: true
+    });
+
+    // Pulse the SSE live chip
+    const chip = document.getElementById("sseLiveChip");
+    if (chip) {
+      chip.classList.add("pulse");
+      setTimeout(() => chip.classList.remove("pulse"), 1000);
+    }
+  }
+
+  handleLiveTelemetryDelta(event) {
+    if (event.pressureDelta) {
+      const pEl = document.getElementById("valPressure");
+      if (pEl) {
+        const val = +(parseFloat(pEl.textContent) + event.pressureDelta).toFixed(0);
+        pEl.textContent = val;
+      }
+    }
+    if (event.surgeDelta) {
+      const sEl = document.getElementById("valSurge");
+      if (sEl) {
+        const val = Math.max(0.6, +(parseFloat(sEl.textContent) + event.surgeDelta)).toFixed(1);
+        sEl.textContent = val;
+      }
+    }
+    if (event.windDelta) {
+      const wEl = document.getElementById("valWind");
+      if (wEl) {
+        const val = Math.max(70, Math.min(260, parseInt(wEl.textContent, 10) + event.windDelta));
+        wEl.textContent = val;
+      }
+    }
+  }
+
+  // Sidebar Collapse / Expand for Full Common Operating Picture (COP)
+  toggleLeftPanel() {
+    this.isLeftCollapsed = !this.isLeftCollapsed;
+    const app = document.getElementById("app");
+    if (app) app.classList.toggle("collapse-left", this.isLeftCollapsed);
+    const expandBtn = document.getElementById("btnExpandLeft");
+    if (expandBtn) expandBtn.classList.toggle("hidden", !this.isLeftCollapsed);
+    setTimeout(() => this.map && this.map.invalidateSize(), 300);
+  }
+
+  toggleRightPanel() {
+    this.isRightCollapsed = !this.isRightCollapsed;
+    const app = document.getElementById("app");
+    if (app) app.classList.toggle("collapse-right", this.isRightCollapsed);
+    const expandBtn = document.getElementById("btnExpandRight");
+    if (expandBtn) expandBtn.classList.toggle("hidden", !this.isRightCollapsed);
+    setTimeout(() => this.map && this.map.invalidateSize(), 300);
+  }
+
+  toggleFullCop() {
+    const app = document.getElementById("app");
+    const btn = document.getElementById("btnCopFocus");
+    const isFull = app.classList.contains("full-cop");
+
+    if (isFull) {
+      app.classList.remove("full-cop", "collapse-left", "collapse-right");
+      this.isLeftCollapsed = false;
+      this.isRightCollapsed = false;
+      document.getElementById("btnExpandLeft").classList.add("hidden");
+      document.getElementById("btnExpandRight").classList.add("hidden");
+      if (btn) btn.classList.remove("active");
+    } else {
+      app.classList.add("full-cop", "collapse-left", "collapse-right");
+      this.isLeftCollapsed = true;
+      this.isRightCollapsed = true;
+      document.getElementById("btnExpandLeft").classList.remove("hidden");
+      document.getElementById("btnExpandRight").classList.remove("hidden");
+      if (btn) btn.classList.add("active");
+    }
+    setTimeout(() => this.map && this.map.invalidateSize(), 300);
+  }
+
+  // Micro-Data Accordion Toggle
+  toggleAssetAccordion() {
+    const card = document.getElementById("assetMiniCard");
+    const btn = document.getElementById("btnToggleAssetAccordion");
+    if (!card || !btn) return;
+    card.classList.toggle("collapsed");
+    const isCollapsed = card.classList.contains("collapsed");
+    btn.innerHTML = isCollapsed ? '<i class="ti ti-chevron-down"></i>' : '<i class="ti ti-chevron-up"></i>';
+  }
+
+  // High-Contrast Generator/Bunker Mode
+  toggleHighContrast() {
+    this.isHighContrast = !this.isHighContrast;
+    document.body.classList.toggle("theme-high-contrast", this.isHighContrast);
+    const btn = document.getElementById("btnToggleHighContrast");
+    if (btn) {
+      if (this.isHighContrast) {
+        btn.classList.add("active");
+        localStorage.setItem("aegis_theme_contrast", "high");
+      } else {
+        btn.classList.remove("active");
+        localStorage.removeItem("aegis_theme_contrast");
+      }
+    }
+  }
+
+  initUserPreferences() {
+    const savedContrast = localStorage.getItem("aegis_theme_contrast");
+    if (savedContrast === "high") {
+      this.isHighContrast = true;
+      document.body.classList.add("theme-high-contrast");
+      const btn = document.getElementById("btnToggleHighContrast");
+      if (btn) btn.classList.add("active");
+    }
+  }
+
+  dismissLiveAlert() {
+    clearTimeout(this.liveAlertTimer);
+    const banner = document.getElementById("liveStreamAlertBanner");
+    if (banner) banner.classList.add("hidden");
+  }
+
+  toggleStreamAudio() {
+    const enabled = this.liveStream.toggleSound();
+    const btn = document.getElementById("btnToggleStreamAudio");
+    if (btn) {
+      btn.innerHTML = enabled ? '<i class="ti ti-volume"></i>' : '<i class="ti ti-volume-off"></i>';
+      btn.title = enabled ? "Mute Alert Audio" : "Unmute Alert Audio";
+    }
   }
 }
 
