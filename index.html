@@ -244,6 +244,16 @@
           <h3 class="section-heading"><i class="ti ti-layers-intersect"></i> TACTICAL GIS OVERLAYS</h3>
           <div class="layer-toggle-list">
             <label class="toggle-item">
+              <input type="checkbox" id="layerLiveRadar" aria-label="Toggle Live Doppler Weather Radar" />
+              <span class="toggle-slider"></span>
+              <span class="toggle-text"><span class="indicator-dot green blinking" style="display:inline-block; vertical-align:middle; margin-right:4px;"></span>Live Doppler Radar (NEXRAD)</span>
+            </label>
+            <label class="toggle-item">
+              <input type="checkbox" id="layerLiveSatellite" aria-label="Toggle Real Meteorological Satellite Clouds" />
+              <span class="toggle-slider"></span>
+              <span class="toggle-text"><span class="indicator-dot" style="display:inline-block; vertical-align:middle; margin-right:4px; background-color:#38bdf8;"></span>Live Satellite Clouds (NASA GIBS)</span>
+            </label>
+            <label class="toggle-item">
               <input type="checkbox" id="layerTrack" checked aria-label="Toggle Cyclone Path Layer" />
               <span class="toggle-slider"></span>
               <span class="toggle-text">Cyclone Path &amp; Eye Radius</span>
@@ -314,6 +324,19 @@
         <button id="btnExpandRight" class="floating-panel-restore right-restore hidden" title="Restore AI & Advisory">
           <span>AI &amp; Advisory</span> <i class="ti ti-chevron-left"></i>
         </button>
+
+        <!-- Floating Basemap Selector on Map -->
+        <div class="map-basemap-dock" role="group" aria-label="Select Map Basemap Layer">
+          <button class="btn-basemap-option active" data-basemap="dark" title="Esri Tactical Dark Gray Basemap">
+            <i class="ti ti-moon"></i> <span>Dark</span>
+          </button>
+          <button class="btn-basemap-option" data-basemap="satellite" title="Esri Real High-Resolution Satellite Imagery">
+            <i class="ti ti-satellite"></i> <span>Satellite</span>
+          </button>
+          <button class="btn-basemap-option" data-basemap="topo" title="Esri World Topographic Map">
+            <i class="ti ti-mountain"></i> <span>Topo</span>
+          </button>
+        </div>
 
         <!-- Interactive Map Container -->
         <div id="gisMap" class="tactical-map-container" role="region" aria-label="Coastal GIS Map Viewport"></div>

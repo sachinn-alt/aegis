@@ -2264,3 +2264,63 @@ body.theme-high-contrast .time-scrubber-dock {
   flex-wrap: wrap;
 }
 
+/* ==========================================================================
+   Floating Basemap Selector Dock (Esri Satellite, Tactical Dark, Topo)
+   ========================================================================== */
+
+.map-basemap-dock {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 600;
+  background: rgba(8, 14, 28, 0.92);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-xs);
+  padding: 3px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.btn-basemap-option {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-secondary);
+  font-family: var(--font-main);
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 3px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: all var(--motion-duration-fast) var(--motion-spring);
+}
+
+.btn-basemap-option:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.btn-basemap-option.active {
+  background: var(--accent-cyan);
+  color: #030712;
+  font-weight: 700;
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.4);
+}
+
+body.theme-high-contrast .map-basemap-dock {
+  background: #000000 !important;
+  border: 2px solid #475569 !important;
+}
+
+body.theme-high-contrast .btn-basemap-option.active {
+  background: #38bdf8 !important;
+  color: #000000 !important;
+  border-color: #ffffff !important;
+}
+

@@ -29,11 +29,33 @@ class AegisApp {
     this.liveAlertTimer = null;
 
     this.activeLayers = {
+      liveRadar: true,
+      liveSatellite: false,
       track: true,
       cone: true,
       surge: true,
       gee: true,
       infrastructure: true
+    };
+
+    // Basemaps (Esri Tactical Dark, Real Satellite Imagery, Topographic)
+    this.currentBasemap = "dark";
+    this.basemaps = {
+      dark: {
+        base: "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}",
+        labels: "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}",
+        attribution: "Tiles &copy; Esri Dark"
+      },
+      satellite: {
+        base: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+        labels: "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",
+        attribution: "Source: Esri, Maxar, Earthstar Geographics"
+      },
+      topo: {
+        base: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}",
+        labels: null,
+        attribution: "Tiles &copy; Esri Topo"
+      }
     };
 
     // Engines
@@ -51,11 +73,14 @@ class AegisApp {
     this.map = null;
     this.mapLayers = {
       base: null,
+      labels: null,
       trackPolyline: null,
       eyeMarker: null,
       conePolygon: null,
       surgePolygon: null,
       geeRasterOverlay: null,
+      liveRadarOverlay: null,
+      liveSatelliteOverlay: null,
       infraGroup: L.layerGroup()
     };
 
@@ -107,22 +132,8 @@ class AegisApp {
     // Custom tactical zoom control on top-left
     L.control.zoom({ position: "topleft" }).addTo(this.map);
 
-    // Tactical Dark Gray Basemap (Esri World Dark Gray - crisp EOC basemap with zero watermarks)
-    this.mapLayers.base = L.tileLayer(
-      "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}",
-      {
-        maxZoom: 16,
-        attribution: "Tiles &copy; Esri"
-      }
-    ).addTo(this.map);
-
-    this.mapLayers.labels = L.tileLayer(
-      "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}",
-      {
-        maxZoom: 16,
-        opacity: 0.85
-      }
-    ).addTo(this.map);
+    // Initialize Default Basemap (Tactical Dark)
+    this.switchBasemap(this.currentBasemap);
 
     this.mapLayers.infraGroup.addTo(this.map);
   }
@@ -133,6 +144,33 @@ class AegisApp {
     basinSelect.addEventListener("change", (e) => {
       this.loadBasin(e.target.value);
     });
+
+    // Basemap Switcher Buttons on Map (Dark, Satellite, Topo)
+    document.querySelectorAll(".btn-basemap-option").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        const type = e.currentTarget.getAttribute("data-basemap");
+        this.switchBasemap(type);
+      });
+    });
+
+    // Live Radar & Satellite Layer Toggles
+    const radarCb = document.getElementById("layerLiveRadar");
+    if (radarCb) {
+      radarCb.checked = this.activeLayers.liveRadar;
+      radarCb.addEventListener("change", (e) => {
+        this.activeLayers.liveRadar = e.target.checked;
+        this.renderLiveRadar();
+      });
+    }
+
+    const satCb = document.getElementById("layerLiveSatellite");
+    if (satCb) {
+      satCb.checked = this.activeLayers.liveSatellite;
+      satCb.addEventListener("change", (e) => {
+        this.activeLayers.liveSatellite = e.target.checked;
+        this.renderLiveSatellite();
+      });
+    }
 
     // Time Slider
     const timeSlider = document.getElementById("timeSlider");
@@ -450,6 +488,8 @@ class AegisApp {
     this.renderCone();
     this.renderSurge();
     this.renderGeeRaster();
+    this.renderLiveRadar();
+    this.renderLiveSatellite();
     this.renderInfrastructure();
 
     // Update Infrastructure Mini-List
@@ -614,6 +654,96 @@ class AegisApp {
           </div>
         `);
     });
+  }
+
+  // Basemap Switcher (Tactical Dark, Real High-Res Satellite, Topographic)
+  switchBasemap(type) {
+    if (!this.basemaps[type]) return;
+    this.currentBasemap = type;
+
+    if (this.mapLayers.base) {
+      this.map.removeLayer(this.mapLayers.base);
+      this.mapLayers.base = null;
+    }
+    if (this.mapLayers.labels) {
+      this.map.removeLayer(this.mapLayers.labels);
+      this.mapLayers.labels = null;
+    }
+
+    const cfg = this.basemaps[type];
+    this.mapLayers.base = L.tileLayer(cfg.base, {
+      maxZoom: 18,
+      attribution: cfg.attribution
+    }).addTo(this.map);
+    this.mapLayers.base.bringToBack();
+
+    if (cfg.labels) {
+      this.mapLayers.labels = L.tileLayer(cfg.labels, {
+        maxZoom: 18,
+        opacity: 0.85
+      }).addTo(this.map);
+    }
+
+    document.querySelectorAll(".btn-basemap-option").forEach(btn => {
+      btn.classList.toggle("active", btn.getAttribute("data-basemap") === type);
+    });
+  }
+
+  // Live Doppler Weather Radar (RainViewer & NOAA NEXRAD Composite)
+  async renderLiveRadar() {
+    if (this.mapLayers.liveRadarOverlay) {
+      this.map.removeLayer(this.mapLayers.liveRadarOverlay);
+      this.mapLayers.liveRadarOverlay = null;
+    }
+
+    if (!this.activeLayers.liveRadar) return;
+
+    try {
+      const res = await fetch("https://api.rainviewer.com/public/weather-maps.json");
+      const data = await res.json();
+      const latest = (data.radar && data.radar.past && data.radar.past.length > 0)
+        ? data.radar.past[data.radar.past.length - 1]
+        : null;
+
+      const tileUrl = latest
+        ? `${data.host}${latest.path}/256/{z}/{x}/{y}/2/1_1.png`
+        : "https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/nexrad-n0q-900913/{z}/{x}/{y}.png";
+
+      this.mapLayers.liveRadarOverlay = L.tileLayer(tileUrl, {
+        opacity: 0.75,
+        zIndex: 400,
+        attribution: "Live Doppler Radar &copy; RainViewer / NOAA NEXRAD"
+      }).addTo(this.map);
+    } catch (e) {
+      this.mapLayers.liveRadarOverlay = L.tileLayer("https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/nexrad-n0q-900913/{z}/{x}/{y}.png", {
+        opacity: 0.75,
+        zIndex: 400,
+        attribution: "Live Doppler Radar &copy; NOAA NEXRAD"
+      }).addTo(this.map);
+    }
+  }
+
+  // Real Meteorological Satellite Clouds (NASA GIBS Earthdata / NOAA)
+  renderLiveSatellite() {
+    if (this.mapLayers.liveSatelliteOverlay) {
+      this.map.removeLayer(this.mapLayers.liveSatelliteOverlay);
+      this.mapLayers.liveSatelliteOverlay = null;
+    }
+
+    if (!this.activeLayers.liveSatellite) return;
+
+    const today = new Date();
+    today.setDate(today.getDate() - 1);
+    const dateStr = today.toISOString().split("T")[0];
+
+    const nasaGibsUrl = `https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/MODIS_Terra_CorrectedReflectance_TrueColor/default/${dateStr}/GoogleMapsCompatible_Level9/{z}/{y}/{x}.jpg`;
+
+    this.mapLayers.liveSatelliteOverlay = L.tileLayer(nasaGibsUrl, {
+      opacity: 0.65,
+      zIndex: 350,
+      maxZoom: 9,
+      attribution: "Live Satellite &copy; NASA GIBS / NOAA"
+    }).addTo(this.map);
   }
 
   updateInfrastructureList() {
