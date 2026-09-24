@@ -605,6 +605,58 @@
       </div>
     </div>
 
+    <!-- Modal for EOC Report Center & Official Briefings (Printable PDF & Financial CSV) -->
+    <div id="reportModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="reportModalTitle">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div>
+            <h3 id="reportModalTitle"><i class="ti ti-file-analytics"></i> EOC Situation Report &amp; Audit Center</h3>
+            <span class="modal-subtitle">Official ICS-209 Briefings · Offline Client-Side PDF &amp; Tabular CSV Export</span>
+          </div>
+          <button id="btnCloseReportModal" class="btn-close" aria-label="Close modal"><i class="ti ti-x"></i></button>
+        </div>
+        <div class="modal-body">
+          <p class="modal-desc">
+            Generate and export official disaster documentation for executive briefings, media releases, shift handovers, and federal/state funding audit compliance:
+          </p>
+
+          <div class="report-options-grid">
+            <!-- Option 1: Printable / PDF SITREP -->
+            <div class="report-option-card">
+              <div class="report-icon" style="color: #0284c7;"><i class="ti ti-file-text"></i></div>
+              <div class="report-details">
+                <h4 class="report-title">Executive Situation Report (SITREP)</h4>
+                <p class="report-desc">Structured 2-page print-budgeted layout. Includes weather physics, critical infrastructure exposure matrix, CAD queue, and commander sign-off block.</p>
+                <div class="report-btn-row">
+                  <button id="btnExportPrintPdf" class="btn-accent-sm"><i class="ti ti-printer"></i> Printable / PDF (2-Page)</button>
+                  <button id="btnExportTextSitrep" class="btn-ghost-sm"><i class="ti ti-file-code"></i> Plaintext Briefing</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Option 2: Financial & Audit CSV Ledger -->
+            <div class="report-option-card">
+              <div class="report-icon" style="color: #10b981;"><i class="ti ti-table-export"></i></div>
+              <div class="report-details">
+                <h4 class="report-title">Disaster Audit Ledger (CSV)</h4>
+                <p class="report-desc">Full tabular export for finance and post-incident review teams. Contains damage severity scores, elevation data, population exposure, and NIMS mobilization hours.</p>
+                <div class="report-btn-row">
+                  <button id="btnExportCsvLedger" class="btn-accent-sm" style="background: #10b981; color: #041b12;"><i class="ti ti-download"></i> Download Audit CSV</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="tip-box" style="margin-top: 12px;">
+            <i class="ti ti-shield-check"></i> <em>Generated 100% client-side in the browser. Zero server processing overhead, zero crash vulnerability, and fully operational in low-bandwidth/offline EOC environments.</em>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="btnCloseReportModalFooter" class="btn-ghost">Close</button>
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <script type="module" src="/src/main.js"></script>

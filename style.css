@@ -2202,3 +2202,65 @@ body.theme-high-contrast .time-scrubber-dock {
   }
 }
 
+/* ==========================================================================
+   EOC Report Center & Export Modal Styling
+   ========================================================================== */
+
+.report-options-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.report-option-card {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  transition: all var(--motion-duration-fast) var(--motion-spring);
+}
+
+.report-option-card:hover {
+  background: rgba(0, 240, 255, 0.04);
+  border-color: var(--border-tactical);
+  transform: translateY(-1px);
+}
+
+.report-icon {
+  font-size: 1.6rem;
+  line-height: 1;
+  flex-shrink: 0;
+  padding-top: 2px;
+}
+
+.report-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.report-title {
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.report-desc {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  margin-bottom: 6px;
+}
+
+.report-btn-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+

@@ -193,9 +193,26 @@ class AegisApp {
       this.toggleAudioBroadcast();
     });
 
-    // SITREP Report Generator
+    // EOC Report Center Modal & Export Actions
+    const reportModal = document.getElementById("reportModal");
     document.getElementById("btnSitrep").addEventListener("click", () => {
+      reportModal.classList.remove("hidden");
+    });
+    document.getElementById("btnCloseReportModal").addEventListener("click", () => {
+      reportModal.classList.add("hidden");
+    });
+    document.getElementById("btnCloseReportModalFooter").addEventListener("click", () => {
+      reportModal.classList.add("hidden");
+    });
+
+    document.getElementById("btnExportPrintPdf").addEventListener("click", () => {
+      this.exportPrintableSitrep();
+    });
+    document.getElementById("btnExportTextSitrep").addEventListener("click", () => {
       this.generateSitrepDownload();
+    });
+    document.getElementById("btnExportCsvLedger").addEventListener("click", () => {
+      this.exportCsvAuditLedger();
     });
 
     // API Key Modal Controls
@@ -717,6 +734,32 @@ class AegisApp {
     });
     const filename = `Aegis_${this.currentBasin.country}_${this.currentStep.step}_SITREP.txt`;
     this.reporter.downloadReport(report, filename);
+  }
+
+  exportPrintableSitrep() {
+    const analysisText = document.getElementById("geminiContent").innerText || "Initial Spatial Diagnostics Pending";
+    const htmlReport = this.reporter.generatePrintableHtmlSitrep({
+      basin: this.currentBasin,
+      currentStep: this.currentStep,
+      exposedAssets: this.exposedAssets,
+      geminiAnalysis: analysisText,
+      incidentTriage: this.triage,
+      resourceTracker: this.resources,
+      interagencyLogger: this.logger
+    });
+    this.reporter.openPrintableSitrep(htmlReport);
+  }
+
+  exportCsvAuditLedger() {
+    const csvContent = this.reporter.generateCsvAuditLedger({
+      basin: this.currentBasin,
+      currentStep: this.currentStep,
+      exposedAssets: this.exposedAssets,
+      incidentTriage: this.triage,
+      resourceTracker: this.resources
+    });
+    const filename = `Aegis_Disaster_Audit_Ledger_${this.currentBasin.country}_${this.currentStep.step}.csv`;
+    this.reporter.downloadCsv(csvContent, filename);
   }
 
   downloadIcs214() {
