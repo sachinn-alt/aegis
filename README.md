@@ -1,9 +1,10 @@
 # 🌀 AEGIS
 ### Predictive Cyclone Impact & Critical Infrastructure Vulnerability Forecaster for BRICS Nations
 
-[![BRICS Resilience Network](https://img.shields.io/badge/BRICS-Disaster%20Resilience%20Network-00f0ff?style=for-the-badge)](https://aegis.brics-resilience.org)
-[![Track 05](https://img.shields.io/badge/Track%2005-Resilience%20%26%20Predictive%20Infrastructure-ff8400?style=for-the-badge)](https://aegis.brics-resilience.org)
-[![Gemini 3.7 Flash](https://img.shields.io/badge/AI%20Core-Gemini%203.7%20Flash-a855f7?style=for-the-badge&logo=google)](https://aegis.brics-resilience.org)
+[![Live Demo on Vercel](https://img.shields.io/badge/Live%20Demo-Vercel%20Production-000000?style=for-the-badge&logo=vercel)](https://aegis-iota-umber.vercel.app/)
+[![BRICS Resilience Network](https://img.shields.io/badge/BRICS-Disaster%20Resilience%20Network-00f0ff?style=for-the-badge)](https://aegis-iota-umber.vercel.app/)
+[![Track 05](https://img.shields.io/badge/Track%2005-Resilience%20%26%20Predictive%20Infrastructure-ff8400?style=for-the-badge)](https://aegis-iota-umber.vercel.app/)
+[![Gemini 3.7 Flash](https://img.shields.io/badge/AI%20Core-Gemini%203.7%20Flash-a855f7?style=for-the-badge&logo=google)](https://aegis-iota-umber.vercel.app/)
 [![GIS Engine](https://img.shields.io/badge/GIS-Leaflet%20%2B%20CartoDB%20Dark-00ffaa?style=for-the-badge)](https://leafletjs.com)
 
 ---
