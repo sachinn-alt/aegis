@@ -27,6 +27,9 @@
   <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
   
+  <!-- Tabler Icons Webfont -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css" />
+
   <!-- Google Fonts: Outfit & JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -107,27 +110,23 @@
       <div class="brand-group">
         <div class="radar-pulse-icon" aria-hidden="true">
           <div class="pulse-ring"></div>
-          <span class="icon-core">🌀</span>
+          <span class="icon-core"><i class="ti ti-tornado"></i></span>
         </div>
         <div class="brand-text">
           <div class="title-row">
-            <!-- Exactly one H1 per page -->
             <h1 class="brand-title">AEGIS</h1>
-            <span class="brics-pill">BRICS DISASTER RESILIENCE NETWORK</span>
+            <span class="brics-pill">BRICS RESILIENCE</span>
           </div>
-          <!-- Breadcrumb Trail -->
-          <nav class="eoc-breadcrumbs" aria-label="Breadcrumb">
-            <a href="/" class="crumb-link">National EOC</a>
-            <span class="crumb-sep">/</span>
-            <span class="crumb-current">Active Surveillance &amp; Vulnerability Grid</span>
-          </nav>
+          <div class="eoc-breadcrumbs" aria-label="Status tag">
+            <span class="crumb-current">EOC · Live Grid</span>
+          </div>
         </div>
       </div>
 
       <!-- Basin & Scenario Selector -->
       <div class="header-controls">
         <div class="basin-selector-wrapper">
-          <label for="basinSelect" class="control-label">COASTAL BASIN</label>
+          <label for="basinSelect" class="sr-only">Coastal Basin</label>
           <select id="basinSelect" class="basin-dropdown" aria-label="Select Coastal Basin Scenario">
             <option value="india" selected>🇮🇳 India — Bay of Bengal (Cyclone DANA)</option>
             <option value="south_africa">🇿🇦 South Africa — Indian Ocean (Cyclone FREDDY)</option>
@@ -142,27 +141,27 @@
         <div class="status-chip-group">
           <div class="status-chip live-alert">
             <span class="indicator-dot blinking" aria-hidden="true"></span>
-            <span id="headerStatusText">RED ALERT: LANDFALL IMMINENT</span>
+            <span id="headerStatusText">ALERT: RED</span>
           </div>
           <div class="status-chip gee-chip">
             <span class="indicator-dot green" aria-hidden="true"></span>
-            <span>GEE SATELLITE: INGESTING</span>
+            <span>GEE LIVE</span>
           </div>
         </div>
 
         <!-- Header Actions & Global Systems Interoperability Controls -->
         <div class="header-actions">
           <button id="btnNationalSystems" class="btn-ghost" title="Native Emergency Systems & OASIS CAP v1.2 Gateway" aria-label="National Systems & CAP Gateway">
-            🌐 <span class="btn-text">Native Systems &amp; CAP</span>
+            <i class="ti ti-world"></i> <span class="btn-text">CAP 1.2</span>
           </button>
           <button id="btnToggleBandwidth" class="btn-ghost" title="Toggle Low-Bandwidth / Satcom Mode" aria-label="Network Bandwidth Mode">
-            📶 <span id="bandwidthModeLabel" class="btn-text">Net: Adaptive</span>
+            <i class="ti ti-antenna"></i> <span id="bandwidthModeLabel" class="btn-text">Net: Live</span>
           </button>
           <button id="btnApiKey" class="btn-ghost" title="Configure Google Gemini API Key" aria-label="Gemini API Key configuration">
-            🔑 <span class="btn-text">Gemini Key</span>
+            <i class="ti ti-key"></i> <span class="btn-text">Key</span>
           </button>
           <button id="btnSitrep" class="btn-accent" title="Download Official Situation Report" aria-label="Generate Executive Situation Report">
-            📄 <span class="btn-text">Generate SITREP</span>
+            <i class="ti ti-file-text"></i> <span class="btn-text">SITREP</span>
           </button>
         </div>
       </div>
@@ -215,7 +214,7 @@
 
           <!-- Population Exposure Metric -->
           <div class="population-exposure-box">
-            <div class="exp-icon" aria-hidden="true">👥</div>
+            <div class="exp-icon" aria-hidden="true"><i class="ti ti-users"></i></div>
             <div class="exp-content">
               <span class="exp-title">COASTAL POPULATION EXPOSED</span>
               <span class="exp-count" id="valPopulation">3,850,000</span>
@@ -225,7 +224,7 @@
 
         <!-- Layer Toggles Section -->
         <div class="panel-section layer-controls-card">
-          <h3 class="section-heading">TACTICAL GIS OVERLAYS</h3>
+          <h3 class="section-heading"><i class="ti ti-layers-intersect"></i> TACTICAL GIS OVERLAYS</h3>
           <div class="layer-toggle-list">
             <label class="toggle-item">
               <input type="checkbox" id="layerTrack" checked aria-label="Toggle Cyclone Path Layer" />
@@ -245,7 +244,7 @@
             <label class="toggle-item">
               <input type="checkbox" id="layerGee" checked aria-label="Toggle Sentinel-1 SAR Raster" />
               <span class="toggle-slider"></span>
-              <span class="toggle-text">Sentinel-1 SAR Flood Inundation (GEE)</span>
+              <span class="toggle-text">Sentinel-1 SAR Floods (GEE)</span>
             </label>
             <label class="toggle-item">
               <input type="checkbox" id="layerInfrastructure" checked aria-label="Toggle Critical Infrastructure Layer" />
@@ -258,7 +257,7 @@
         <!-- Infrastructure Status Snapshot -->
         <div class="panel-section infrastructure-mini-list">
           <div class="section-header-row">
-            <h3 class="section-heading">CRITICAL ASSET EXPOSURE</h3>
+            <h3 class="section-heading"><i class="ti ti-shield-alert"></i> ASSET EXPOSURE</h3>
             <span class="threat-counter" id="threatCountBadge">4 At Risk</span>
           </div>
           <div id="assetSummaryList" class="asset-scroll-list" role="list">
@@ -285,12 +284,12 @@
         <div class="time-scrubber-dock" role="toolbar" aria-label="Simulation Time Scrubber">
           <div class="scrubber-header">
             <div class="time-readout">
-              <span class="label">ANALYSIS TIMELINE:</span>
-              <span id="activeTimeStepLabel" class="active-step-badge">T-24h (24 Hours Before Landfall)</span>
+              <span class="label">TIMELINE:</span>
+              <span id="activeTimeStepLabel" class="active-step-badge">T-24h (24h Before Landfall)</span>
             </div>
             <div class="playback-controls">
               <button id="btnPlayPause" class="btn-play" aria-label="Toggle Auto-Simulation Playback">
-                <span id="playIcon" aria-hidden="true">▶</span> <span id="playText">Auto-Simulate</span>
+                <span id="playIcon" aria-hidden="true"><i class="ti ti-player-play"></i></span> <span id="playText">Simulate</span>
               </button>
             </div>
           </div>
@@ -316,21 +315,21 @@
         <div class="panel-section gemini-card">
           <div class="gemini-header">
             <div class="gemini-branding">
-              <span class="sparkle-icon" aria-hidden="true">✨</span>
+              <span class="sparkle-icon" aria-hidden="true"><i class="ti ti-sparkles"></i></span>
               <div>
                 <h3 class="gemini-title">Gemini 3.7 Flash</h3>
                 <span class="gemini-sub">Multimodal Spatial Reasoning</span>
               </div>
             </div>
             <button id="btnRunGemini" class="btn-gemini-pulse" aria-label="Run Gemini Multimodal Spatial Analysis">
-              <span>Analyze Map</span>
+              <i class="ti ti-scan"></i> <span>Analyze</span>
             </button>
           </div>
 
           <div class="gemini-output-container" aria-live="polite">
             <div id="geminiLoader" class="gemini-loading-indicator hidden">
               <div class="scanner-line"></div>
-              <span>Gemini 3.7 Flash synthesizing GEE satellite rasters &amp; infrastructure topology...</span>
+              <span>Gemini 3.7 Flash synthesizing GEE rasters &amp; topology...</span>
             </div>
             <div id="geminiContent" class="gemini-markdown-body">
               <!-- Populated by Gemini -->
@@ -341,7 +340,7 @@
         <!-- Multilingual Early-Warning Advisory Dispatcher -->
         <div class="panel-section advisory-card">
           <div class="advisory-header-row">
-            <h3 class="section-heading">EARLY-WARNING ADVISORY</h3>
+            <h3 class="section-heading"><i class="ti ti-bell-ringing"></i> EARLY-WARNING</h3>
             <div class="lang-selector-group">
               <label for="advisoryLangSelect" class="sr-only">Advisory Language</label>
               <select id="advisoryLangSelect" class="lang-dropdown" aria-label="Select Advisory Broadcast Language">
@@ -360,7 +359,7 @@
             <!-- Audio Playback Controller -->
             <div class="audio-control-bar">
               <button id="btnPlayAudio" class="btn-audio-speak" aria-label="Play spoken audio warning alert">
-                <span id="audioIcon" aria-hidden="true">🔊</span> <span id="audioText">Play Voice Warning</span>
+                <span id="audioIcon" aria-hidden="true"><i class="ti ti-volume"></i></span> <span id="audioText">Voice Warning</span>
               </button>
               <div id="audioWaveform" class="audio-wave-anim hidden" aria-hidden="true">
                 <span></span><span></span><span></span><span></span><span></span>
@@ -378,8 +377,8 @@
                 <span class="channel-count" id="statRadio">Ch. 16 Active</span>
               </div>
               <div class="channel-pill">
-                <span class="channel-name">Panchayat Sirens</span>
-                <span class="channel-count" id="statVoice">Activated</span>
+                <span class="channel-name">Sirens</span>
+                <span class="channel-count" id="statVoice">Active</span>
               </div>
             </div>
           </div>
@@ -393,8 +392,8 @@
     <div id="apiKeyModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
       <div class="modal-card">
         <div class="modal-header">
-          <h3 id="modalTitle">Google Cloud / Gemini API Settings</h3>
-          <button id="btnCloseModal" class="btn-close" aria-label="Close modal">&times;</button>
+          <h3 id="modalTitle"><i class="ti ti-key"></i> Gemini API Settings</h3>
+          <button id="btnCloseModal" class="btn-close" aria-label="Close modal"><i class="ti ti-x"></i></button>
         </div>
         <div class="modal-body">
           <p class="modal-desc">
@@ -405,7 +404,7 @@
             <input type="password" id="inputApiKey" placeholder="AIzaSy..." class="text-input" autocomplete="off" />
           </div>
           <div class="tip-box">
-            💡 <em>If left blank, Aegis seamlessly uses its integrated offline spatial reasoning engine so all live demos function with zero latency.</em>
+            <i class="ti ti-info-circle"></i> <em>If left blank, Aegis seamlessly uses its integrated offline spatial reasoning engine so all live demos function with zero latency.</em>
           </div>
         </div>
         <div class="modal-footer">
@@ -420,19 +419,19 @@
       <div class="modal-card modal-card-wide">
         <div class="modal-header">
           <div>
-            <h3 id="natSysModalTitle">🌐 National Systems &amp; Global CAP v1.2 Gateway</h3>
+            <h3 id="natSysModalTitle"><i class="ti ti-world-latitude"></i> National Systems &amp; Global CAP v1.2 Gateway</h3>
             <span class="modal-subtitle" id="natSysCountrySubtitle">Configured for National EOC Protocols · ITU-T X.1303 Compliant</span>
           </div>
-          <button id="btnCloseNatSysModal" class="btn-close" aria-label="Close modal">&times;</button>
+          <button id="btnCloseNatSysModal" class="btn-close" aria-label="Close modal"><i class="ti ti-x"></i></button>
         </div>
         <div class="modal-body modal-scrollable">
           
           <!-- Tab Controls -->
           <div class="modal-tabs">
-            <button class="modal-tab-btn active" data-tab="tab-networks">📡 Native Networks &amp; Channels</button>
-            <button class="modal-tab-btn" data-tab="tab-cap">📄 OASIS CAP v1.2 Feed</button>
-            <button class="modal-tab-btn" data-tab="tab-satcom">🛰️ Tactical Satcom Packet</button>
-            <button class="modal-tab-btn" data-tab="tab-import">🌍 Import Custom Country</button>
+            <button class="modal-tab-btn active" data-tab="tab-networks"><i class="ti ti-antenna"></i> Native Networks &amp; Channels</button>
+            <button class="modal-tab-btn" data-tab="tab-cap"><i class="ti ti-file-code"></i> OASIS CAP v1.2 Feed</button>
+            <button class="modal-tab-btn" data-tab="tab-satcom"><i class="ti ti-satellite"></i> Tactical Satcom Packet</button>
+            <button class="modal-tab-btn" data-tab="tab-import"><i class="ti ti-upload"></i> Import Custom Country</button>
           </div>
 
           <!-- Tab 1: Native Networks & Channels -->
@@ -469,8 +468,8 @@
             <div class="cap-actions-bar">
               <span class="cap-status-pill">ITU-T X.1303 / OASIS CAP v1.2 Validated</span>
               <div class="cap-btn-group">
-                <button id="btnDownloadCapXml" class="btn-accent-sm">📥 Download CAP XML</button>
-                <button id="btnCopyCapJson" class="btn-ghost-sm">📋 Copy CAP JSON</button>
+                <button id="btnDownloadCapXml" class="btn-accent-sm"><i class="ti ti-download"></i> Download CAP XML</button>
+                <button id="btnCopyCapJson" class="btn-ghost-sm"><i class="ti ti-copy"></i> Copy CAP JSON</button>
               </div>
             </div>
             <pre class="code-preview-box"><code id="capXmlPreview">&lt;!-- CAP XML will be rendered here --&gt;</code></pre>
@@ -484,12 +483,12 @@
             <div class="satcom-preview-container">
               <div class="satcom-header-row">
                 <span class="satcom-tag">TACTICAL ASCII PROTOCOL v1.0</span>
-                <button id="btnCopySatcomPacket" class="btn-ghost-sm">📋 Copy Packet</button>
+                <button id="btnCopySatcomPacket" class="btn-ghost-sm"><i class="ti ti-copy"></i> Copy Packet</button>
               </div>
               <textarea id="satcomPacketPreview" class="satcom-textarea" readonly rows="4"></textarea>
             </div>
             <div class="tip-box">
-              🛰️ <em>Transmittable over 300-baud HF radio, Marine Single Sideband (SSB), or low-power field mesh nodes with zero broadband overhead.</em>
+              <i class="ti ti-satellite"></i> <em>Transmittable over 300-baud HF radio, Marine Single Sideband (SSB), or low-power field mesh nodes with zero broadband overhead.</em>
             </div>
           </div>
 
@@ -499,7 +498,7 @@
               Deploy Aegis in <strong>any coastal territory worldwide</strong>. Upload a GeoJSON FeatureCollection of critical assets or an Aegis Scenario JSON definition:
             </p>
             <div class="upload-dropzone" id="dropZoneGeoJson">
-              <span class="upload-icon">📂</span>
+              <span class="upload-icon"><i class="ti ti-cloud-upload"></i></span>
               <p>Drag &amp; drop a <strong>.geojson</strong> or <strong>.json</strong> file here, or click to browse</p>
               <input type="file" id="inputGeoJsonFile" accept=".json,.geojson" class="hidden-file-input" />
               <button id="btnBrowseGeoJson" class="btn-accent-sm">Select File</button>

@@ -93,12 +93,20 @@ class AegisApp {
     // Custom tactical zoom control on top-left
     L.control.zoom({ position: "topleft" }).addTo(this.map);
 
-    // CartoDB Dark Matter Basemap
+    // Tactical Dark Gray Basemap (Esri World Dark Gray - crisp EOC basemap with zero watermarks)
     this.mapLayers.base = L.tileLayer(
-      "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+      "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}",
       {
-        maxZoom: 18,
-        subdomains: "abcd"
+        maxZoom: 16,
+        attribution: "Tiles &copy; Esri"
+      }
+    ).addTo(this.map);
+
+    this.mapLayers.labels = L.tileLayer(
+      "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}",
+      {
+        maxZoom: 16,
+        opacity: 0.85
       }
     ).addTo(this.map);
 
@@ -317,11 +325,11 @@ class AegisApp {
     if (this.isPlaying) {
       clearInterval(this.playInterval);
       this.isPlaying = false;
-      document.getElementById("playIcon").textContent = "▶";
-      document.getElementById("playText").textContent = "Auto-Simulate";
+      document.getElementById("playIcon").innerHTML = '<i class="ti ti-player-play"></i>';
+      document.getElementById("playText").textContent = "Simulate";
     } else {
       this.isPlaying = true;
-      document.getElementById("playIcon").textContent = "⏸";
+      document.getElementById("playIcon").innerHTML = '<i class="ti ti-player-pause"></i>';
       document.getElementById("playText").textContent = "Pause";
 
       this.playInterval = setInterval(() => {
@@ -337,7 +345,7 @@ class AegisApp {
     // Update Timeline readout badge
     document.getElementById("activeTimeStepLabel").textContent = `${step.step} (${step.label})`;
     document.getElementById("stepTimestamp").textContent = step.timestamp;
-    document.getElementById("headerStatusText").textContent = `ALERT LEVEL: ${step.alertLevel} — ${step.status}`;
+    document.getElementById("headerStatusText").textContent = `ALERT: ${step.alertLevel} · ${step.step}`;
 
     // Telemetry Numbers
     document.getElementById("valPressure").textContent = step.centralPressureHpa;
@@ -486,16 +494,17 @@ class AegisApp {
         pinClass = "pin-warning";
       }
 
-      let iconChar = "⚡";
-      if (asset.type === "hospital") iconChar = "🏥";
-      if (asset.type === "shelter") iconChar = "🛡️";
-      if (asset.type === "road" || asset.type === "bridge") iconChar = "🌉";
+      let iconHtml = '<i class="ti ti-bolt"></i>';
+      if (asset.type === "hospital") iconHtml = '<i class="ti ti-building-hospital"></i>';
+      if (asset.type === "shelter") iconHtml = '<i class="ti ti-shield"></i>';
+      if (asset.type === "road" || asset.type === "bridge") iconHtml = '<i class="ti ti-bridge"></i>';
+      if (asset.type === "port" || asset.type === "marine") iconHtml = '<i class="ti ti-anchor"></i>';
 
       const pinIcon = L.divIcon({
         className: "custom-pin-wrapper",
-        html: `<div class="tactical-pin ${pinClass}">${iconChar}</div>`,
-        iconSize: [28, 28],
-        iconAnchor: [14, 14]
+        html: `<div class="tactical-pin ${pinClass}">${iconHtml}</div>`,
+        iconSize: [22, 22],
+        iconAnchor: [11, 11]
       });
 
       const marker = L.marker(asset.coords, { icon: pinIcon })
@@ -601,20 +610,20 @@ class AegisApp {
 
     if (this.dispatcher.isPlayingAudio) {
       this.dispatcher.stopSpeaking();
-      document.getElementById("audioIcon").textContent = "🔊";
-      document.getElementById("audioText").textContent = "Play Voice Warning";
+      document.getElementById("audioIcon").innerHTML = '<i class="ti ti-volume"></i>';
+      document.getElementById("audioText").textContent = "Voice Warning";
       wave.classList.add("hidden");
     } else {
       const adv = this.dispatcher.getAdvisories(this.currentBasinKey, this.currentStep, langSelect.value);
       const textToSpeak = `${adv.data.title}. ${adv.data.message}`;
 
-      document.getElementById("audioIcon").textContent = "⏹";
+      document.getElementById("audioIcon").innerHTML = '<i class="ti ti-player-stop"></i>';
       document.getElementById("audioText").textContent = "Stop Broadcast";
       wave.classList.remove("hidden");
 
       this.dispatcher.speakAdvisory(textToSpeak, adv.data.langCode, () => {
-        document.getElementById("audioIcon").textContent = "🔊";
-        document.getElementById("audioText").textContent = "Play Voice Warning";
+        document.getElementById("audioIcon").innerHTML = '<i class="ti ti-volume"></i>';
+        document.getElementById("audioText").textContent = "Voice Warning";
         wave.classList.add("hidden");
       });
     }
