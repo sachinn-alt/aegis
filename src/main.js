@@ -10,6 +10,9 @@ import { GeminiReasoningEngine } from "./engine/gemini_reasoning.js";
 import { AdvisoryDispatcher } from "./engine/advisory_dispatcher.js";
 import { ReportGenerator } from "./engine/report_generator.js";
 import { NationalSystemAdapter } from "./engine/national_adapter.js";
+import { IncidentTriageEngine, IncidentPriority } from "./engine/incident_triage.js";
+import { ResourceTracker, ResourceCategory, ResourceStatus } from "./engine/resource_tracker.js";
+import { InterAgencyLogger } from "./engine/interagency_log.js";
 
 class AegisApp {
   constructor() {
@@ -34,6 +37,9 @@ class AegisApp {
     this.gemini = new GeminiReasoningEngine();
     this.dispatcher = new AdvisoryDispatcher(this.nationalAdapter);
     this.reporter = new ReportGenerator();
+    this.triage = new IncidentTriageEngine();
+    this.resources = new ResourceTracker();
+    this.logger = new InterAgencyLogger();
 
     // Map & Layer References
     this.map = null;
@@ -240,6 +246,9 @@ class AegisApp {
     document.getElementById("btnCopySatcomPacket").addEventListener("click", () => {
       this.copySatcomPacket();
     });
+    document.getElementById("btnDownloadIcs214").addEventListener("click", () => {
+      this.downloadIcs214();
+    });
 
     // Low-Bandwidth / Satcom Mode Toggle
     document.getElementById("btnToggleBandwidth").addEventListener("click", () => {
@@ -277,6 +286,11 @@ class AegisApp {
   loadBasin(basinKey) {
     this.currentBasinKey = basinKey;
     const basin = this.currentBasin;
+
+    // Seed backend engines for this basin
+    this.triage.seedBasinIncidents(basinKey);
+    this.resources.seedBasinResources(basinKey);
+    this.logger.seedBasinLogs(basinKey);
 
     // Center map
     this.map.setView(basin.center, basin.zoom);
@@ -631,14 +645,30 @@ class AegisApp {
 
   generateSitrepDownload() {
     const analysisText = document.getElementById("geminiContent").innerText || "Initial Spatial Diagnostics Pending";
-    const report = this.reporter.generateSitrep(
-      this.currentBasin,
-      this.currentStep,
-      this.exposedAssets,
-      analysisText
-    );
+    const report = this.reporter.generateSitrep({
+      basin: this.currentBasin,
+      currentStep: this.currentStep,
+      exposedAssets: this.exposedAssets,
+      geminiAnalysis: analysisText,
+      incidentTriage: this.triage,
+      resourceTracker: this.resources,
+      interagencyLogger: this.logger
+    });
     const filename = `Aegis_${this.currentBasin.country}_${this.currentStep.step}_SITREP.txt`;
     this.reporter.downloadReport(report, filename);
+  }
+
+  downloadIcs214() {
+    const logText = this.logger.exportIcs214(this.currentBasin.stormName);
+    const blob = new Blob([logText], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `ICS214_Log_${this.currentBasin.country}_${this.currentStep.step}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   }
 
   // Populate and render National Systems & Global CAP Gateway modal
@@ -659,6 +689,81 @@ class AegisApp {
     document.getElementById("specNavtex").textContent = `NAVTEX: ${profile.marineVHF.navtexStation}`;
     document.getElementById("specHotlines").textContent = `Unified: ${profile.emergencyHotlines.unified} · EOC: ${profile.emergencyHotlines.disasterSpecific}`;
     document.getElementById("specDatum").textContent = `National Datum: ${profile.spatialDatum}`;
+
+    // Render CAD Incident Triage & NIMS Resources
+    const triageMetrics = this.triage.getQueueMetrics();
+    const metricsGrid = document.getElementById("cadTriageMetricsGrid");
+    if (metricsGrid) {
+      metricsGrid.innerHTML = `
+        <div class="spec-card">
+          <span class="spec-label">ACTIVE CAD DISTRESS QUEUE</span>
+          <span class="spec-value" style="color: #ff527c;">${triageMetrics.activeQueued} Calls Pending</span>
+          <span class="spec-meta">P1 (Life Threats): ${triageMetrics.p1Count} | P2 (Grid): ${triageMetrics.p2Count}</span>
+        </div>
+        <div class="spec-card">
+          <span class="spec-label">LIVES UNDER HAZARD</span>
+          <span class="spec-value">${triageMetrics.totalLivesAtRisk.toLocaleString()} Persons</span>
+          <span class="spec-meta">Reported via 112, VHF &amp; Panic Beacons</span>
+        </div>
+        <div class="spec-card">
+          <span class="spec-label">DISPATCHED UNITS</span>
+          <span class="spec-value" style="color: #00ffaa;">${triageMetrics.dispatched} Dispatched / ${triageMetrics.onScene} On-Scene</span>
+          <span class="spec-meta">Multi-Agency First Responders</span>
+        </div>
+        <div class="spec-card">
+          <span class="spec-label">NIMS RESOURCE FLEET</span>
+          <span class="spec-value">${this.resources.getResourceSummary().stagedAvailable} Staged / Available</span>
+          <span class="spec-meta">Type 1-4 Rescue Boats, Pumps &amp; Gensets</span>
+        </div>
+      `;
+    }
+
+    // Render CAD Prioritized Queue
+    const queueList = document.getElementById("cadQueueListContainer");
+    if (queueList) {
+      queueList.innerHTML = "";
+      const queue = this.triage.getPrioritizedQueue();
+      queue.forEach(item => {
+        const div = document.createElement("div");
+        div.className = "asset-list-item";
+        div.innerHTML = `
+          <div class="asset-item-top">
+            <span class="asset-name" style="max-width: 280px;"><strong>${item.id}</strong> — ${item.locationName}</span>
+            <span class="asset-status-pill status-critical">${item.priority.code} (Score: ${item.triageScore})</span>
+          </div>
+          <div class="asset-desc" style="color: #cbd5e1;">${item.description}</div>
+          <div style="font-size: 0.6rem; color: #00f0ff; font-family: var(--text-mono); margin-top: 2px;">
+            Source: ${item.source} · State: ${item.status} · Persons: ${item.affectedPersons}
+          </div>
+        `;
+        queueList.appendChild(div);
+      });
+    }
+
+    // Render NIMS Resource Fleet
+    const resList = document.getElementById("resourceFleetListContainer");
+    if (resList) {
+      resList.innerHTML = "";
+      const resources = this.resources.queryResources();
+      resources.forEach(res => {
+        const div = document.createElement("div");
+        div.className = "asset-list-item";
+        div.innerHTML = `
+          <div class="asset-item-top">
+            <span class="asset-name" style="max-width: 260px;"><strong>${res.callsign}</strong> — ${res.kind}</span>
+            <span class="asset-status-pill status-safe">${res.type} · ${res.status}</span>
+          </div>
+          <div class="asset-desc">${res.owningAgency} · Staged: ${res.homeBase}</div>
+        `;
+        resList.appendChild(div);
+      });
+    }
+
+    // Render ICS-214 Activity Log
+    const ics214Code = document.getElementById("ics214LogPreview");
+    if (ics214Code) {
+      ics214Code.textContent = this.logger.exportIcs214(this.currentBasin.stormName);
+    }
 
     // Generate OASIS CAP v1.2 XML
     const capXml = this.nationalAdapter.generateCapXml({
@@ -768,7 +873,15 @@ class AegisApp {
   }
 }
 
-// Bootstrap Application on DOM load
+// Bootstrap Application on DOM load and attach headless programmatic API
 window.addEventListener("DOMContentLoaded", () => {
-  new AegisApp();
+  const app = new AegisApp();
+  window.aegis = {
+    app,
+    triage: app.triage,
+    resources: app.resources,
+    logger: app.logger,
+    nationalAdapter: app.nationalAdapter,
+    exportIcs214: () => app.logger.exportIcs214(app.currentBasin.stormName)
+  };
 });

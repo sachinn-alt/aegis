@@ -1,8 +1,16 @@
 // Aegis - Executive Situation Report (SITREP) Generator
-// Generates printable / downloadable disaster intelligence briefings for DEOC & Cabinet
+// Generates official disaster intelligence briefings for EOC Incident Commanders, Cabinets, and Multi-Agency Coordination Centers (MACC)
 
 export class ReportGenerator {
-  generateSitrep(basin, currentStep, exposedAssets, geminiAnalysis) {
+  generateSitrep({
+    basin,
+    currentStep,
+    exposedAssets,
+    geminiAnalysis,
+    incidentTriage = null,
+    resourceTracker = null,
+    interagencyLogger = null
+  }) {
     const timestamp = new Date().toUTCString();
     const compromised = exposedAssets.filter(a => 
       a.currentStatus.includes("FAIL") || 
@@ -12,7 +20,14 @@ export class ReportGenerator {
       a.currentStatus.includes("HIGH")
     );
 
-    const reportContent = `================================================================================
+    // Retrieve live queue and resource stats if engines provided
+    const incidentMetrics = incidentTriage ? incidentTriage.getQueueMetrics() : null;
+    const prioritizedQueue = incidentTriage ? incidentTriage.getPrioritizedQueue() : [];
+    const resourceSummary = resourceTracker ? resourceTracker.getResourceSummary() : null;
+    const allResources = resourceTracker ? resourceTracker.queryResources() : [];
+    const logEntries = interagencyLogger ? interagencyLogger.getEntries() : [];
+
+    let reportContent = `================================================================================
                     AEGIS — BRICS DISASTER RESILIENCE NETWORK
                   EXECUTIVE SITUATION REPORT (SITREP) — BULLETIN #04
 ================================================================================
@@ -48,17 +63,71 @@ ${exposedAssets.map((asset, idx) => `
 3. GEMINI 3.7 FLASH SPATIAL REASONING SYNTHESIS
 --------------------------------------------------------------------------------
 ${geminiAnalysis.replace(/\*\*/g, "")}
+`;
 
-4. DEPLOYMENT & MOBILIZATION DIRECTIVES
+    // 4. Incident Triage & Queue Management Section
+    if (incidentMetrics) {
+      reportContent += `
+4. INCIDENT CAD TRIAGE & QUEUE MANAGEMENT (ACTIVE INCIDENT DISPATCH)
 --------------------------------------------------------------------------------
-- Immediate clearance of primary arterial corridors for first-responder staging.
-- De-energization of compromised switchyards to prevent saltwater arcing.
-- Hospital emergency power islanding confirmed on aux diesel generators.
-- Multi-channel early-warning advisory broadcast active in regional languages.
+- Total Emergency Distress Calls Ingested: ${incidentMetrics.totalReported}
+- Active Queued: ${incidentMetrics.activeQueued} | Dispatched: ${incidentMetrics.dispatched} | On-Scene: ${incidentMetrics.onScene}
+- Priority Triage Breakdown:
+    * P1 (Life Threatening / Drowning / Collapse): ${incidentMetrics.p1Count}
+    * P2 (Critical Infrastructure / Substation Tripped): ${incidentMetrics.p2Count}
+    * P3 (Evacuation Chokepoints / Road Blocked): ${incidentMetrics.p3Count}
+    * P4 (Logistics & Relief Requests): ${incidentMetrics.p4Count}
+- Estimated Lives Under Immediate Hazard: ${incidentMetrics.totalLivesAtRisk}
 
+Prioritized Queue Snapshot (Top Priority Dispatches):
+${prioritizedQueue.slice(0, 5).map((inc, i) => `
+  [${i + 1}] ${inc.id} [${inc.priority.code}] - Score: ${inc.triageScore}
+      Location: ${inc.locationName}
+      Category: ${inc.category} | State: ${inc.status}
+      Details: ${inc.description}
+      Assigned Units: ${inc.assignedResources.length > 0 ? inc.assignedResources.join(", ") : "UNASSIGNED — STANDBY"}
+`).join("")}`;
+    }
+
+    // 5. NIMS Resource Tracking (Kind & Type) Section
+    if (resourceSummary) {
+      reportContent += `
+5. NIMS / ICS RESOURCE TRACKING (KIND & TYPE INVENTORY)
+--------------------------------------------------------------------------------
+- Total Registered Tactical Resources: ${resourceSummary.totalAssets}
+- Staged / Available for Immediate Tasking: ${resourceSummary.stagedAvailable}
+- Actively Committed / Deployed On-Scene: ${resourceSummary.deployedActive}
+- Out of Service / Maintenance: ${resourceSummary.outOfService}
+
+Standardized Resource Fleet (Kind & Type Breakdown):
+${allResources.map((res, i) => `
+  * Callsign: ${res.callsign.padEnd(24, " ")} | ${res.kind} (${res.type})
+    Owning Agency: ${res.owningAgency}
+    Current Status: ${res.status.padEnd(20, " ")} | Staged At: ${res.homeBase}
+    Mission Assignment: ${res.assignedAssetName || res.assignedIncidentId || "AVAILABLE"}
+`).join("")}`;
+    }
+
+    // 6. Inter-Agency Activity Ledger (ICS-214) Section
+    if (logEntries.length > 0) {
+      reportContent += `
+6. INTER-AGENCY OPERATIONS LEDGER (ICS-214 VERIFIED AUDIT CHAIN)
+--------------------------------------------------------------------------------
+${logEntries.map(e => `
+[${e.entryId}] ${new Date(e.timestamp).toISOString().slice(11, 19)} UTC | Agency: ${e.agency}
+Action Type: ${e.actionType}
+Officer in Charge: ${e.officerInCharge || "EOC Commander"}
+Summary: ${e.summary}
+Target Assets: ${(e.affectedAssets || []).join(", ") || "General Sector"}
+Acknowledgments: ${(e.acknowledgedBy || []).join(", ")}
+Cryptographic SHA-256 Hash: ${e.verificationHash.slice(0, 16)}...
+`).join("\n")}`;
+    }
+
+    reportContent += `
 ================================================================================
-REPORT GENERATED BY AEGIS PLATFORM | GOOGLE CLOUD AI POWERED
-CROSS-BORDER BRICS RESILIENCE FRAMEWORK — CONFIDENTIAL / OPERATIONAL USE ONLY
+REPORT GENERATED BY AEGIS PLATFORM | OPERATIONAL EOC NODE
+CROSS-BORDER BRICS RESILIENCE FRAMEWORK — OFFICIAL USE ONLY
 ================================================================================`;
 
     return reportContent;

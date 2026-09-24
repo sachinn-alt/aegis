@@ -431,6 +431,8 @@
             <button class="modal-tab-btn active" data-tab="tab-networks"><i class="ti ti-antenna"></i> Native Networks &amp; Channels</button>
             <button class="modal-tab-btn" data-tab="tab-cap"><i class="ti ti-file-code"></i> OASIS CAP v1.2 Feed</button>
             <button class="modal-tab-btn" data-tab="tab-satcom"><i class="ti ti-satellite"></i> Tactical Satcom Packet</button>
+            <button class="modal-tab-btn" data-tab="tab-cad-triage"><i class="ti ti-urgent"></i> CAD Triage &amp; Resources</button>
+            <button class="modal-tab-btn" data-tab="tab-ics214"><i class="ti ti-clipboard-list"></i> Inter-Agency Log (ICS-214)</button>
             <button class="modal-tab-btn" data-tab="tab-import"><i class="ti ti-upload"></i> Import Custom Country</button>
           </div>
 
@@ -492,7 +494,44 @@
             </div>
           </div>
 
-          <!-- Tab 4: Import Custom Country / Basin -->
+          <!-- Tab 4: CAD Incident Triage & Resource Tracking (Backend Engine Inspection) -->
+          <div id="tab-cad-triage" class="modal-tab-content">
+            <p class="modal-desc">
+              Automated backend Computer-Aided Dispatch (CAD) triage queue and NIMS standardized Resource Fleet (Kind &amp; Type):
+            </p>
+            <div class="spec-grid" id="cadTriageMetricsGrid">
+              <!-- Dynamically populated -->
+            </div>
+            <div style="margin-top: 14px;">
+              <h4 style="font-size: 0.8rem; color: #ffffff; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                <i class="ti ti-list-check"></i> Active Prioritized Distress Queue
+              </h4>
+              <div id="cadQueueListContainer" class="asset-scroll-list" style="max-height: 180px;">
+                <!-- Dynamically populated -->
+              </div>
+            </div>
+            <div style="margin-top: 14px;">
+              <h4 style="font-size: 0.8rem; color: #ffffff; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                <i class="ti ti-truck"></i> NIMS Resource Deployment (Kind &amp; Type)
+              </h4>
+              <div id="resourceFleetListContainer" class="asset-scroll-list" style="max-height: 160px;">
+                <!-- Dynamically populated -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab 5: Inter-Agency Activity Log (ICS Form 214) -->
+          <div id="tab-ics214" class="modal-tab-content">
+            <div class="cap-actions-bar">
+              <span class="cap-status-pill">ICS Form 214 / MACC Audit Ledger · SHA-256 Verified</span>
+              <div class="cap-btn-group">
+                <button id="btnDownloadIcs214" class="btn-accent-sm"><i class="ti ti-download"></i> Download ICS-214</button>
+              </div>
+            </div>
+            <pre class="code-preview-box"><code id="ics214LogPreview">&lt;!-- ICS-214 Log will be rendered here --&gt;</code></pre>
+          </div>
+
+          <!-- Tab 6: Import Custom Country / Basin -->
           <div id="tab-import" class="modal-tab-content">
             <p class="modal-desc">
               Deploy Aegis in <strong>any coastal territory worldwide</strong>. Upload a GeoJSON FeatureCollection of critical assets or an Aegis Scenario JSON definition:
