@@ -9,6 +9,7 @@ import { SurgePhysicsEngine } from "./engine/surge_physics.js";
 import { GeminiReasoningEngine } from "./engine/gemini_reasoning.js";
 import { AdvisoryDispatcher } from "./engine/advisory_dispatcher.js";
 import { ReportGenerator } from "./engine/report_generator.js";
+import { NationalSystemAdapter } from "./engine/national_adapter.js";
 
 class AegisApp {
   constructor() {
@@ -16,6 +17,8 @@ class AegisApp {
     this.currentStepIdx = 2; // Default to T-24h (Critical pre-landfall window)
     this.isPlaying = false;
     this.playInterval = null;
+    this.customBasins = {};
+    this.isLowBandwidthMode = false;
 
     this.activeLayers = {
       track: true,
@@ -26,9 +29,10 @@ class AegisApp {
     };
 
     // Engines
+    this.nationalAdapter = new NationalSystemAdapter();
     this.physics = new SurgePhysicsEngine();
     this.gemini = new GeminiReasoningEngine();
-    this.dispatcher = new AdvisoryDispatcher();
+    this.dispatcher = new AdvisoryDispatcher(this.nationalAdapter);
     this.reporter = new ReportGenerator();
 
     // Map & Layer References
@@ -47,7 +51,7 @@ class AegisApp {
   }
 
   get currentBasin() {
-    return BRICS_BASINS[this.currentBasinKey] || BRICS_BASINS.india;
+    return this.customBasins[this.currentBasinKey] || BRICS_BASINS[this.currentBasinKey] || BRICS_BASINS.india;
   }
 
   get currentStep() {
@@ -191,6 +195,74 @@ class AegisApp {
       this.gemini.setApiKey("");
       document.getElementById("inputApiKey").value = "";
       apiKeyModal.classList.add("hidden");
+    });
+
+    // National Systems & OASIS CAP v1.2 Gateway Modal
+    const natSysModal = document.getElementById("nationalSystemsModal");
+    document.getElementById("btnNationalSystems").addEventListener("click", () => {
+      this.populateNationalSystemsModal();
+      natSysModal.classList.remove("hidden");
+    });
+    document.getElementById("btnCloseNatSysModal").addEventListener("click", () => {
+      natSysModal.classList.add("hidden");
+    });
+    document.getElementById("btnCloseNatSysModalFooter").addEventListener("click", () => {
+      natSysModal.classList.add("hidden");
+    });
+
+    // Modal Tabs Navigation
+    document.querySelectorAll(".modal-tab-btn").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        const targetTab = e.currentTarget.getAttribute("data-tab");
+        document.querySelectorAll(".modal-tab-btn").forEach(b => b.classList.remove("active"));
+        document.querySelectorAll(".modal-tab-content").forEach(c => c.classList.remove("active"));
+        e.currentTarget.classList.add("active");
+        const activeContent = document.getElementById(targetTab);
+        if (activeContent) activeContent.classList.add("active");
+      });
+    });
+
+    // CAP Download & Copy Actions
+    document.getElementById("btnDownloadCapXml").addEventListener("click", () => {
+      this.downloadCapXml();
+    });
+    document.getElementById("btnCopyCapJson").addEventListener("click", () => {
+      this.copyCapJson();
+    });
+    document.getElementById("btnCopySatcomPacket").addEventListener("click", () => {
+      this.copySatcomPacket();
+    });
+
+    // Low-Bandwidth / Satcom Mode Toggle
+    document.getElementById("btnToggleBandwidth").addEventListener("click", () => {
+      this.toggleBandwidthMode();
+    });
+
+    // Custom Country GeoJSON / Scenario Upload
+    const fileInput = document.getElementById("inputGeoJsonFile");
+    document.getElementById("btnBrowseGeoJson").addEventListener("click", () => {
+      fileInput.click();
+    });
+    fileInput.addEventListener("change", (e) => {
+      if (e.target.files && e.target.files[0]) {
+        this.handleGeoJsonUpload(e.target.files[0]);
+      }
+    });
+
+    const dropZone = document.getElementById("dropZoneGeoJson");
+    dropZone.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      dropZone.style.borderColor = "var(--accent-cyan)";
+    });
+    dropZone.addEventListener("dragleave", () => {
+      dropZone.style.borderColor = "var(--border-tactical)";
+    });
+    dropZone.addEventListener("drop", (e) => {
+      e.preventDefault();
+      dropZone.style.borderColor = "var(--border-tactical)";
+      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+        this.handleGeoJsonUpload(e.dataTransfer.files[0]);
+      }
     });
   }
 
@@ -381,7 +453,7 @@ class AegisApp {
       this.mapLayers.geeRasterOverlay = null;
     }
 
-    if (!this.activeLayers.gee) return;
+    if (!this.activeLayers.gee || this.isLowBandwidthMode) return;
 
     // Simulate Sentinel-1 SAR flood imagery overlay
     const [cLat, cLng] = this.currentBasin.center;
@@ -558,6 +630,132 @@ class AegisApp {
     );
     const filename = `Aegis_${this.currentBasin.country}_${this.currentStep.step}_SITREP.txt`;
     this.reporter.downloadReport(report, filename);
+  }
+
+  // Populate and render National Systems & Global CAP Gateway modal
+  populateNationalSystemsModal() {
+    const profile = this.nationalAdapter.getProfile(this.currentBasinKey);
+    const langSelect = document.getElementById("advisoryLangSelect");
+    const activeLang = langSelect ? langSelect.value : "default";
+    const adv = this.dispatcher.getAdvisories(this.currentBasinKey, this.currentStep, activeLang, this.currentBasin);
+
+    // Update Subtitle and Specification Cards
+    document.getElementById("natSysCountrySubtitle").textContent = 
+      `Configured for ${profile.countryName} (${profile.agencyAcronym}) · ITU-T X.1303 & OASIS CAP v1.2 Compliant`;
+    document.getElementById("specAgency").textContent = profile.agencyName;
+    document.getElementById("specCapStd").textContent = `Standard: ${profile.capStandard}`;
+    document.getElementById("specCellBroadcast").textContent = `${profile.cellBroadcast.standard} — ${profile.cellBroadcast.primaryChannel}`;
+    document.getElementById("specCbStatus").textContent = profile.cellBroadcast.status;
+    document.getElementById("specMarineVhf").textContent = `${profile.marineVHF.primaryEmergencyChannel} (GMDSS ${profile.marineVHF.gmdssSeaArea})`;
+    document.getElementById("specNavtex").textContent = `NAVTEX: ${profile.marineVHF.navtexStation}`;
+    document.getElementById("specHotlines").textContent = `Unified: ${profile.emergencyHotlines.unified} · EOC: ${profile.emergencyHotlines.disasterSpecific}`;
+    document.getElementById("specDatum").textContent = `National Datum: ${profile.spatialDatum}`;
+
+    // Generate OASIS CAP v1.2 XML
+    const capXml = this.nationalAdapter.generateCapXml({
+      basin: this.currentBasin,
+      timeStep: this.currentStep,
+      exposedAssets: this.exposedAssets,
+      advisory: adv.data
+    });
+    document.getElementById("capXmlPreview").textContent = capXml;
+
+    // Generate Tactical Satcom / Low-Bandwidth Packet
+    const satcomPacket = this.nationalAdapter.getCompactSatcomPacket(
+      this.currentBasin,
+      this.currentStep,
+      this.exposedAssets
+    );
+    document.getElementById("satcomPacketPreview").value = satcomPacket;
+  }
+
+  downloadCapXml() {
+    const capXml = document.getElementById("capXmlPreview").textContent;
+    const blob = new Blob([capXml], { type: "application/xml;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `CAP1.2_${this.currentBasin.country}_${this.currentStep.step}.xml`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  copyCapJson() {
+    const langSelect = document.getElementById("advisoryLangSelect");
+    const activeLang = langSelect ? langSelect.value : "default";
+    const adv = this.dispatcher.getAdvisories(this.currentBasinKey, this.currentStep, activeLang, this.currentBasin);
+    const capJson = this.nationalAdapter.generateCapJson({
+      basin: this.currentBasin,
+      timeStep: this.currentStep,
+      exposedAssets: this.exposedAssets,
+      advisory: adv.data
+    });
+    navigator.clipboard.writeText(JSON.stringify(capJson, null, 2)).then(() => {
+      alert("OASIS CAP v1.2 JSON payload copied to clipboard for API gateway injection!");
+    });
+  }
+
+  copySatcomPacket() {
+    const packet = document.getElementById("satcomPacketPreview").value;
+    navigator.clipboard.writeText(packet).then(() => {
+      alert("Tactical HF/Satcom telemetry packet (<1.2 KB) copied to clipboard!");
+    });
+  }
+
+  toggleBandwidthMode() {
+    this.isLowBandwidthMode = !this.isLowBandwidthMode;
+    const label = document.getElementById("bandwidthModeLabel");
+    if (this.isLowBandwidthMode) {
+      label.textContent = "Net: Satcom Low-BW";
+      label.parentElement.classList.add("active");
+      this.renderGeeRaster();
+      alert("Switched to Low-Bandwidth / Satcom Mode: Suppressed high-resolution raster tile ingestion to conserve tactical satellite data.");
+    } else {
+      label.textContent = "Net: Adaptive";
+      label.parentElement.classList.remove("active");
+      this.renderGeeRaster();
+      alert("Switched to Adaptive Broadband Mode: Full GIS raster simulation restored.");
+    }
+  }
+
+  handleGeoJsonUpload(file) {
+    const statusMsg = document.getElementById("importStatusMsg");
+    statusMsg.className = "import-status-msg";
+    statusMsg.textContent = "Parsing and validating GeoJSON scenario structure...";
+    statusMsg.classList.remove("hidden");
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const parsed = JSON.parse(e.target.result);
+        const importedBasin = this.nationalAdapter.importCustomBasinFromGeoJson(parsed);
+        this.customBasins[importedBasin.id] = importedBasin;
+
+        // Add to coastal basin dropdown if not already present
+        const basinSelect = document.getElementById("basinSelect");
+        let existingOpt = Array.from(basinSelect.options).find(opt => opt.value === importedBasin.id);
+        if (!existingOpt) {
+          const opt = document.createElement("option");
+          opt.value = importedBasin.id;
+          opt.textContent = `${importedBasin.flag || "🌐"} ${importedBasin.country} — ${importedBasin.basinName} (${importedBasin.stormName.split(" ")[0]})`;
+          basinSelect.appendChild(opt);
+        }
+        basinSelect.value = importedBasin.id;
+
+        // Switch to the newly imported country scenario
+        this.loadBasin(importedBasin.id);
+
+        statusMsg.className = "import-status-msg success";
+        statusMsg.textContent = `✓ Successfully deployed Aegis to ${importedBasin.country}! Loaded ${importedBasin.infrastructure.length} critical infrastructure assets into tactical GIS.`;
+      } catch (err) {
+        console.error("GeoJSON import failure:", err);
+        statusMsg.className = "import-status-msg error";
+        statusMsg.textContent = `✗ Failed to import scenario: ${err.message}`;
+      }
+    };
+    reader.readAsText(file);
   }
 }
 

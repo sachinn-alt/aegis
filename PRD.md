@@ -179,6 +179,13 @@ The system shall feature independent toggle controls for 5 distinct tactical lay
 - **FR-10.1:** Provide an in-app modal dialog enabling users to input and store their Google Gemini API key securely in browser `localStorage`.
 - **FR-10.2:** Provide clear indicator showing whether live Gemini Cloud or embedded offline reasoning is active.
 
+### FR-11: National Systems & Global Interoperability Gateway
+- **FR-11.1:** Support universal international scaling beyond BRICS to arbitrary global coastal territories (e.g. Philippines, United States, Mozambique, SIDS, and user-defined territories).
+- **FR-11.2:** Generate fully validated **ITU-T X.1303 / OASIS CAP v1.2** XML and JSON public alerting feeds for direct integration into national alerting gateways (FEMA IPAWS, NDMA Sachet, Defesa Civil Alerta, EU-Alert, etc.).
+- **FR-11.3:** Map native emergency telecommunications infrastructure across **Cell Broadcast (3GPP TS 23.041)**, Marine VHF (Ch. 16 distress & NAVTEX 518 kHz), public emergency hotlines (112, 911, 119), and national spatial datums.
+- **FR-11.4:** Provide an adaptive network profile that senses connection quality and offers a **Tactical Low-Bandwidth / Satcom Mode** generating compact `<1.2 KB` telemetry packets for HF Packet Radio (Winlink/APRS) and satellite Short Burst Data (SBD).
+- **FR-11.5:** Allow operators in any country to import and immediately project custom country GeoJSON FeatureCollections or scenario schemas.
+
 ---
 
 ## 6. Non-Functional Requirements (NFR)
@@ -199,7 +206,7 @@ The system shall feature independent toggle controls for 5 distinct tactical lay
 ### 6.4 Accessibility & Internationalization
 - **NFR-08:** All interactive elements must provide distinct `aria-label` attributes, keyboard focus states, and semantic HTML5 structuring.
 - **NFR-09:** Text contrast ratios must meet or exceed WCAG 2.1 Level AA standards (minimum 4.5:1 for normal text).
-- **NFR-10:** Vernacular scripts (Odia, Bengali, Devanagari, Hanzi) must render with native font ligatures and zero text clipping.
+- **NFR-10:** Vernacular scripts (Odia, Bengali, Devanagari, Hanzi, Tagalog, Portuguese) must render with native font ligatures and zero text clipping.
 
 ---
 
@@ -207,10 +214,12 @@ The system shall feature independent toggle controls for 5 distinct tactical lay
 
 | Standard / Framework | Description | Aegis Implementation |
 |:---|:---|:---|
+| **OASIS CAP v1.2 / ITU-T X.1303** | Universal Common Alerting Protocol for disaster warning | Direct export of XML/JSON CAP alerts for national alerting gateways |
+| **3GPP TS 23.041** | Technical realization of Cell Broadcast Service (CBS) | Channel mapping for public warning (Channels 4370, 919) |
+| **IMO GMDSS / NAVTEX** | Global Maritime Distress and Safety System | Marine VHF Ch. 16 and NAVTEX 518/490 kHz broadcast data |
 | **Sendai Framework (2015–2030)** | Priority 4: Enhancing disaster preparedness for effective response | Direct anticipation of infrastructure failure before landfall |
 | **UN Early Warnings for All (EW4All)** | Universal early warning coverage by 2027 | Multi-channel SMS, VHF, and voice alerts in indigenous languages |
-| **BRICS Disaster Risk Management Accord** | Joint technological cooperation in coastal climate defense | Standardized data interchange across 4 continental basins |
-| **OGC Standards (WGS 84)** | Open Geospatial Consortium coordinate representation | Decimal degrees coordinates for all eye points and assets |
+| **OGC Standards (WGS 84 / GeoJSON)** | Open Geospatial Consortium coordinate representation | Decimal degrees coordinates for all eye points, assets, and GeoJSON ingestion |
 
 ---
 

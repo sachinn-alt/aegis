@@ -133,6 +133,8 @@
             <option value="south_africa">🇿🇦 South Africa — Indian Ocean (Cyclone FREDDY)</option>
             <option value="brazil">🇧🇷 Brazil — South Atlantic (Rio Grande Surge)</option>
             <option value="china">🇨🇳 China — South China Sea (Typhoon DOKSURI)</option>
+            <option value="philippines">🇵🇭 Philippines — West Pacific (Typhoon YOLANDA)</option>
+            <option value="usa">🇺🇸 United States — Gulf Coast (Hurricane MILTON)</option>
           </select>
         </div>
 
@@ -148,11 +150,14 @@
           </div>
         </div>
 
-        <!-- Header Actions & Internal Navigation Links -->
+        <!-- Header Actions & Global Systems Interoperability Controls -->
         <div class="header-actions">
-          <a href="/404.html" class="btn-ghost" title="Test 404 Telemetry Range Page" aria-label="Telemetry diagnostics link">
-            📡 <span class="btn-text">Test 404</span>
-          </a>
+          <button id="btnNationalSystems" class="btn-ghost" title="Native Emergency Systems & OASIS CAP v1.2 Gateway" aria-label="National Systems & CAP Gateway">
+            🌐 <span class="btn-text">Native Systems &amp; CAP</span>
+          </button>
+          <button id="btnToggleBandwidth" class="btn-ghost" title="Toggle Low-Bandwidth / Satcom Mode" aria-label="Network Bandwidth Mode">
+            📶 <span id="bandwidthModeLabel" class="btn-text">Net: Adaptive</span>
+          </button>
           <button id="btnApiKey" class="btn-ghost" title="Configure Google Gemini API Key" aria-label="Gemini API Key configuration">
             🔑 <span class="btn-text">Gemini Key</span>
           </button>
@@ -406,6 +411,105 @@
         <div class="modal-footer">
           <button id="btnSaveApiKey" class="btn-accent">Save Key</button>
           <button id="btnClearApiKey" class="btn-ghost">Clear</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal for National Emergency Systems & OASIS CAP v1.2 Gateway -->
+    <div id="nationalSystemsModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="natSysModalTitle">
+      <div class="modal-card modal-card-wide">
+        <div class="modal-header">
+          <div>
+            <h3 id="natSysModalTitle">🌐 National Systems &amp; Global CAP v1.2 Gateway</h3>
+            <span class="modal-subtitle" id="natSysCountrySubtitle">Configured for National EOC Protocols · ITU-T X.1303 Compliant</span>
+          </div>
+          <button id="btnCloseNatSysModal" class="btn-close" aria-label="Close modal">&times;</button>
+        </div>
+        <div class="modal-body modal-scrollable">
+          
+          <!-- Tab Controls -->
+          <div class="modal-tabs">
+            <button class="modal-tab-btn active" data-tab="tab-networks">📡 Native Networks &amp; Channels</button>
+            <button class="modal-tab-btn" data-tab="tab-cap">📄 OASIS CAP v1.2 Feed</button>
+            <button class="modal-tab-btn" data-tab="tab-satcom">🛰️ Tactical Satcom Packet</button>
+            <button class="modal-tab-btn" data-tab="tab-import">🌍 Import Custom Country</button>
+          </div>
+
+          <!-- Tab 1: Native Networks & Channels -->
+          <div id="tab-networks" class="modal-tab-content active">
+            <p class="modal-desc">
+              Aegis interfaces directly with national telecommunications standards, maritime coastal safety frequencies, and public warning networks:
+            </p>
+            <div class="spec-grid">
+              <div class="spec-card">
+                <span class="spec-label">DESIGNATED NATIONAL AGENCY</span>
+                <span class="spec-value" id="specAgency">NDMA &amp; OSDMA</span>
+                <span class="spec-meta" id="specCapStd">Standard: OASIS CAP v1.2 (Sachet Profile)</span>
+              </div>
+              <div class="spec-card">
+                <span class="spec-label">CELL BROADCAST (3GPP TS 23.041)</span>
+                <span class="spec-value" id="specCellBroadcast">Channel 919 / 4370</span>
+                <span class="spec-meta" id="specCbStatus">Direct Tower Broadcast Active</span>
+              </div>
+              <div class="spec-card">
+                <span class="spec-label">COASTAL MARINE VHF &amp; NAVTEX</span>
+                <span class="spec-value" id="specMarineVhf">VHF Ch. 16 (156.800 MHz)</span>
+                <span class="spec-meta" id="specNavtex">NAVTEX: 518 kHz (International)</span>
+              </div>
+              <div class="spec-card">
+                <span class="spec-label">EMERGENCY DISPATCH HOTLINES</span>
+                <span class="spec-value" id="specHotlines">112 (Universal) / 1077 (State EOC)</span>
+                <span class="spec-meta" id="specDatum">Datum: WGS84 / Local Grid</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab 2: OASIS CAP v1.2 Payload -->
+          <div id="tab-cap" class="modal-tab-content">
+            <div class="cap-actions-bar">
+              <span class="cap-status-pill">ITU-T X.1303 / OASIS CAP v1.2 Validated</span>
+              <div class="cap-btn-group">
+                <button id="btnDownloadCapXml" class="btn-accent-sm">📥 Download CAP XML</button>
+                <button id="btnCopyCapJson" class="btn-ghost-sm">📋 Copy CAP JSON</button>
+              </div>
+            </div>
+            <pre class="code-preview-box"><code id="capXmlPreview">&lt;!-- CAP XML will be rendered here --&gt;</code></pre>
+          </div>
+
+          <!-- Tab 3: Tactical Satcom / HF Radio Packet -->
+          <div id="tab-satcom" class="modal-tab-content">
+            <p class="modal-desc">
+              When disaster strikes and high-speed fiber backhauls are severed, Aegis compiles an ultra-compact (&lt;1.2 KB) telemetry packet suitable for <strong>HF Packet Radio (Winlink/APRS), LoRaWAN beacons, or Iridium Short Burst Data (SBD)</strong>:
+            </p>
+            <div class="satcom-preview-container">
+              <div class="satcom-header-row">
+                <span class="satcom-tag">TACTICAL ASCII PROTOCOL v1.0</span>
+                <button id="btnCopySatcomPacket" class="btn-ghost-sm">📋 Copy Packet</button>
+              </div>
+              <textarea id="satcomPacketPreview" class="satcom-textarea" readonly rows="4"></textarea>
+            </div>
+            <div class="tip-box">
+              🛰️ <em>Transmittable over 300-baud HF radio, Marine Single Sideband (SSB), or low-power field mesh nodes with zero broadband overhead.</em>
+            </div>
+          </div>
+
+          <!-- Tab 4: Import Custom Country / Basin -->
+          <div id="tab-import" class="modal-tab-content">
+            <p class="modal-desc">
+              Deploy Aegis in <strong>any coastal territory worldwide</strong>. Upload a GeoJSON FeatureCollection of critical assets or an Aegis Scenario JSON definition:
+            </p>
+            <div class="upload-dropzone" id="dropZoneGeoJson">
+              <span class="upload-icon">📂</span>
+              <p>Drag &amp; drop a <strong>.geojson</strong> or <strong>.json</strong> file here, or click to browse</p>
+              <input type="file" id="inputGeoJsonFile" accept=".json,.geojson" class="hidden-file-input" />
+              <button id="btnBrowseGeoJson" class="btn-accent-sm">Select File</button>
+            </div>
+            <div id="importStatusMsg" class="import-status-msg hidden"></div>
+          </div>
+
+        </div>
+        <div class="modal-footer">
+          <button id="btnCloseNatSysModalFooter" class="btn-ghost">Close</button>
         </div>
       </div>
     </div>

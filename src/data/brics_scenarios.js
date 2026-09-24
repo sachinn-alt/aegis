@@ -694,5 +694,301 @@ export const BRICS_BASINS = {
         impactDescription: "Reinforced 5m flood barrier withstands peak surge wave with zero circuit breach."
       }
     ]
+  },
+  philippines: {
+    id: "philippines",
+    country: "Philippines",
+    flag: "🇵🇭",
+    basinName: "Western Pacific Basin",
+    stormName: "Super Typhoon YOLANDA / HAIYAN Analog",
+    category: "Category 5 Equivalent",
+    regionDescription: "Eastern Visayas Corridor (Tacloban City, San Pedro Bay, Guiuan, Leyte)",
+    center: [11.24, 125.00],
+    zoom: 9,
+    landfallLocation: "Guiuan & Tacloban City, Leyte",
+    populationAtRisk: "2,400,000",
+    languages: ["Tagalog", "Waray", "English"],
+    defaultLanguage: "Tagalog",
+    maxSurgeEstimate: "4.2m funneling in San Pedro Bay",
+    historicalAnalog: "Super Typhoon Haiyan (Yolanda - 2013)",
+    timeSteps: [
+      {
+        step: "T-72h",
+        label: "72 Hours Before Landfall",
+        timestamp: "Day -3, 06:00 UTC",
+        eyeCoord: [8.8, 133.5],
+        coneRadiusKm: 190,
+        centralPressureHpa: 985,
+        maxWindSpeedKmph: 120,
+        forwardSpeedKmph: 24,
+        surgeHeightM: 1.1,
+        rainfallForecastMm24h: 80,
+        status: "TYPHOON (INTENSIFYING)",
+        alertLevel: "YELLOW",
+        advisoryAction: "Small craft advisory broadcast on VHF Ch. 16; coastal fishing vessels recalled."
+      },
+      {
+        step: "T-48h",
+        label: "48 Hours Before Landfall",
+        timestamp: "Day -2, 06:00 UTC",
+        eyeCoord: [9.8, 129.8],
+        coneRadiusKm: 140,
+        centralPressureHpa: 940,
+        maxWindSpeedKmph: 185,
+        forwardSpeedKmph: 26,
+        surgeHeightM: 2.2,
+        rainfallForecastMm24h: 180,
+        status: "VERY STRONG TYPHOON",
+        alertLevel: "ORANGE",
+        advisoryAction: "Mandatory forced evacuation of shoreline barangays within 300m of high water."
+      },
+      {
+        step: "T-24h",
+        label: "24 Hours Before Landfall",
+        timestamp: "Day -1, 06:00 UTC",
+        eyeCoord: [10.5, 126.8],
+        coneRadiusKm: 80,
+        centralPressureHpa: 905,
+        maxWindSpeedKmph: 260,
+        forwardSpeedKmph: 28,
+        surgeHeightM: 3.5,
+        rainfallForecastMm24h: 310,
+        status: "SUPER TYPHOON (CAT 5)",
+        alertLevel: "RED",
+        advisoryAction: "Cell Broadcast RA 10639 nationwide push; Tacloban airport operations suspended."
+      },
+      {
+        step: "Landfall",
+        label: "Peak Landfall Window",
+        timestamp: "Landfall Hour, 23:00 UTC",
+        eyeCoord: [11.22, 125.01],
+        coneRadiusKm: 40,
+        centralPressureHpa: 895,
+        maxWindSpeedKmph: 315,
+        forwardSpeedKmph: 30,
+        surgeHeightM: 4.2,
+        rainfallForecastMm24h: 420,
+        status: "CATASTROPHIC LANDFALL",
+        alertLevel: "EXTREME CRITICAL",
+        advisoryAction: "Absolute curfew; catastrophic funneling surge penetrating 1.5km inland."
+      },
+      {
+        step: "T+12h",
+        label: "12 Hours Post-Landfall",
+        timestamp: "Day +1, 11:00 UTC",
+        eyeCoord: [11.8, 122.2],
+        coneRadiusKm: 85,
+        centralPressureHpa: 945,
+        maxWindSpeedKmph: 155,
+        forwardSpeedKmph: 25,
+        surgeHeightM: 1.4,
+        rainfallForecastMm24h: 120,
+        status: "TYPHOON (CROSSING VISAYAS)",
+        alertLevel: "AMBER RESTORATION",
+        advisoryAction: "Search and rescue mobilization via San Juanico bridge access corridor."
+      }
+    ],
+    infrastructure: [
+      {
+        id: "ph_port_01",
+        name: "Tacloban Port Terminal & Pier",
+        type: "power",
+        coords: [11.246, 125.006],
+        elevationM: 1.8,
+        capacity: "Eastern Visayas Main Logistics Port",
+        criticalLevel: "CRITICAL",
+        statusByStep: {
+          "T-72h": "NORMAL",
+          "T-48h": "PORT_SUSPENDED",
+          "T-24h": "EVACUATED",
+          "Landfall": "SUBMERGED_FAILURE",
+          "T+12h": "DEBRIS_BLOCKED"
+        },
+        impactDescription: "4.2m storm surge wall completely overtops wharf cranes and cargo staging areas."
+      },
+      {
+        id: "ph_hosp_01",
+        name: "Eastern Visayas Regional Medical Center",
+        type: "hospital",
+        coords: [11.258, 124.995],
+        elevationM: 8.5,
+        capacity: "650 Beds | Regional Trauma Center",
+        criticalLevel: "CRITICAL",
+        statusByStep: {
+          "T-72h": "NORMAL",
+          "T-48h": "STOCK_OXYGEN",
+          "T-24h": "ISLANDED_GENERATORS",
+          "Landfall": "ROOF_COMPROMISED",
+          "T+12h": "OVERCAPACITY"
+        },
+        impactDescription: "High ground preserves medical core; generator floor safe despite wind damage."
+      },
+      {
+        id: "ph_bridge_01",
+        name: "San Juanico Bridge Lifeline (Leyte-Samar)",
+        type: "bridge",
+        coords: [11.301, 124.978],
+        elevationM: 41.0,
+        capacity: "2.16km Critical Inter-Island Lifeline",
+        criticalLevel: "HIGH",
+        statusByStep: {
+          "T-72h": "NORMAL",
+          "T-48h": "PATROLLED",
+          "T-24h": "WIND_RESTRICTED",
+          "Landfall": "CLOSED_TO_TRAFFIC",
+          "T+12h": "STRUCTURAL_CHECK"
+        },
+        impactDescription: "Deck safe above surge water; closed during peak Category 5 winds >250 km/h."
+      }
+    ]
+  },
+  usa: {
+    id: "usa",
+    country: "United States",
+    flag: "🇺🇸",
+    basinName: "Gulf of Mexico",
+    stormName: "Hurricane MILTON / HELENE Analog",
+    category: "Category 4 Major Hurricane",
+    regionDescription: "Florida Gulf Coast Corridor (Tampa Bay, St. Petersburg, Sarasota)",
+    center: [27.85, -82.60],
+    zoom: 9,
+    landfallLocation: "Sarasota / Tampa Bay Entrance, Florida",
+    populationAtRisk: "3,200,000",
+    languages: ["English", "Spanish"],
+    defaultLanguage: "English",
+    maxSurgeEstimate: "3.8m above normal astronomical tide",
+    historicalAnalog: "Hurricane Milton (2024) / Hurricane Ian (2022)",
+    timeSteps: [
+      {
+        step: "T-72h",
+        label: "72 Hours Before Landfall",
+        timestamp: "Day -3, 09:00 EDT",
+        eyeCoord: [22.8, -91.2],
+        coneRadiusKm: 210,
+        centralPressureHpa: 980,
+        maxWindSpeedKmph: 110,
+        forwardSpeedKmph: 16,
+        surgeHeightM: 0.9,
+        rainfallForecastMm24h: 50,
+        status: "HURRICANE WATCH",
+        alertLevel: "YELLOW",
+        advisoryAction: "NOAA Hurricane Watch; mandatory bridge inspection crews on standby."
+      },
+      {
+        step: "T-48h",
+        label: "48 Hours Before Landfall",
+        timestamp: "Day -2, 09:00 EDT",
+        eyeCoord: [24.5, -88.0],
+        coneRadiusKm: 150,
+        centralPressureHpa: 948,
+        maxWindSpeedKmph: 175,
+        forwardSpeedKmph: 19,
+        surgeHeightM: 1.9,
+        rainfallForecastMm24h: 120,
+        status: "MAJOR HURRICANE WARNING",
+        alertLevel: "ORANGE",
+        advisoryAction: "FEMA IPAWS WEA push; mandatory evacuation for Zone A and barrier islands."
+      },
+      {
+        step: "T-24h",
+        label: "24 Hours Before Landfall",
+        timestamp: "Day -1, 09:00 EDT",
+        eyeCoord: [26.2, -85.1],
+        coneRadiusKm: 95,
+        centralPressureHpa: 928,
+        maxWindSpeedKmph: 220,
+        forwardSpeedKmph: 22,
+        surgeHeightM: 3.1,
+        rainfallForecastMm24h: 240,
+        status: "EXTREME SURGE THREAT",
+        alertLevel: "RED",
+        advisoryAction: "Port Tampa Bay closed; Sunshine Skyway bridge closed to high-profile traffic."
+      },
+      {
+        step: "Landfall",
+        label: "Peak Landfall Window",
+        timestamp: "Landfall Hour, 01:30 EDT",
+        eyeCoord: [27.35, -82.65],
+        coneRadiusKm: 45,
+        centralPressureHpa: 922,
+        maxWindSpeedKmph: 235,
+        forwardSpeedKmph: 24,
+        surgeHeightM: 3.8,
+        rainfallForecastMm24h: 360,
+        status: "CAT 4 LANDFALL EYE",
+        alertLevel: "EXTREME CRITICAL",
+        advisoryAction: "Shelter in place immediately; life-threatening surge flooding Tampa Bay."
+      },
+      {
+        step: "T+12h",
+        label: "12 Hours Post-Landfall",
+        timestamp: "Day +1, 13:30 EDT",
+        eyeCoord: [28.6, -80.2],
+        coneRadiusKm: 95,
+        centralPressureHpa: 968,
+        maxWindSpeedKmph: 130,
+        forwardSpeedKmph: 28,
+        surgeHeightM: 1.2,
+        rainfallForecastMm24h: 110,
+        status: "EXITING ATLANTIC COAST",
+        alertLevel: "AMBER RESTORATION",
+        advisoryAction: "US Army Corps of Engineers and power crews assessing electrical substations."
+      }
+    ],
+    infrastructure: [
+      {
+        id: "us_sub_01",
+        name: "Tampa Electric (TECO) Bayside Substation",
+        type: "power",
+        coords: [27.915, -82.418],
+        elevationM: 2.1,
+        capacity: "Powers 240,000 Downtown Tampa Connections",
+        criticalLevel: "CRITICAL",
+        statusByStep: {
+          "T-72h": "NORMAL",
+          "T-48h": "AQUAFENCE_DEPLOYED",
+          "T-24h": "DE_ENERGIZED_PROTECTED",
+          "Landfall": "SUBMERGED_FAILURE",
+          "T+12h": "DRAINING_INSPECTION"
+        },
+        impactDescription: "3.8m surge breaches temporary AquaFence flood barriers; transformer bays flooded."
+      },
+      {
+        id: "us_hosp_01",
+        name: "Tampa General Hospital (Davis Islands)",
+        type: "hospital",
+        coords: [27.937, -82.460],
+        elevationM: 3.8,
+        capacity: "1,041 Beds | Level 1 Trauma Center",
+        criticalLevel: "CRITICAL",
+        statusByStep: {
+          "T-72h": "NORMAL",
+          "T-48h": "AQUAFENCE_RIGGED",
+          "T-24h": "ISLAND_GENERATION",
+          "Landfall": "ISLANDED_OPERATIONAL",
+          "T+12h": "OPERATIONAL"
+        },
+        impactDescription: "Submarine-grade AquaFence wall holds; backup power keeps 1,000+ patients safe."
+      },
+      {
+        id: "us_bridge_01",
+        name: "Sunshine Skyway Bridge (I-275)",
+        type: "bridge",
+        coords: [27.620, -82.656],
+        elevationM: 53.0,
+        capacity: "Critical 6.7km Tampa Bay Evacuation Lifeline",
+        criticalLevel: "HIGH",
+        statusByStep: {
+          "T-72h": "NORMAL",
+          "T-48h": "MONITORED",
+          "T-24h": "HIGH_PROFILE_BAN",
+          "Landfall": "CLOSED_TO_ALL",
+          "T+12h": "INSPECTION_REOPEN"
+        },
+        impactDescription: "Span closed due to sustained hurricane-force gusts >140 km/h."
+      }
+    ]
   }
 };
+
+export const GLOBAL_BASINS = BRICS_BASINS;

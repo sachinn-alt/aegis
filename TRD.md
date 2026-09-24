@@ -298,6 +298,19 @@ interface AdvisoryEntry {
   a.click();
   ```
 
+### 5.6 `NationalSystemAdapter` (`src/engine/national_adapter.js`)
+- **Global Scaling & Country Profile Registry:** Extends Aegis beyond BRICS to arbitrary global coastal territories (e.g. Philippines / NDRRMC, USA / FEMA-NOAA, Mozambique / INGD, or custom user territories).
+- **ITU-T X.1303 & OASIS CAP v1.2 Alert Engine:** Generates standards-compliant XML/JSON public warning feeds directly ingestible by national alerting gateways:
+  - Automatic calculation of `<area>`, `<polygon>`, and `<circle>` bounding perimeters.
+  - Inclusion of national emergency hotlines, marine VHF frequencies, and WMO event codes (`SVR`, `TC`).
+- **Native Telecom Network Channel Mapping:**
+  - **Cell Broadcast Service (3GPP TS 23.041):** Maps national emergency broadcast channels (e.g., Channel 4370 in USA/EU/Brazil, Channel 919 in India, RA 10639 in Philippines).
+  - **Maritime Coastal Radio:** International VHF Ch. 16 (156.800 MHz), working channels, and NAVTEX (518 kHz / 490 kHz) coastal transmission data.
+- **Adaptive Network & Satcom Profile:**
+  - Detects native connection speed (`navigator.connection`) across 2G, 3G, 4G, and offline links.
+  - **Tactical Low-Bandwidth Mode:** Compresses situational telemetry into a compact `<1.2 KB` ASCII packet formatted for transmission over HF Packet Radio (Winlink/APRS), LoRaWAN emergency beacons, or Iridium Short Burst Data (SBD) while disabling heavy raster map fetching.
+- **Dynamic Scenario & GeoJSON Ingestion:** Ingests standard GeoJSON FeatureCollections or Aegis scenario definitions uploaded at runtime to dynamically project any territory's coastline and infrastructure network.
+
 ---
 
 ## 6. External APIs & Network Integration

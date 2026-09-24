@@ -2,3 +2,4 @@ node_modules/
 dist/
 .serena/
 *.log
+graphify-out/cache/last_query_stamp

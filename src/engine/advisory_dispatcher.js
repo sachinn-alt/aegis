@@ -1,13 +1,15 @@
 // Aegis - Multilingual Early-Warning Advisory Dispatcher
-// Automates multi-channel vernacular broadcasts (SMS, WhatsApp, Marine VHF, Voice/Sirens)
+// Automates multi-channel vernacular broadcasts (Cell Broadcast, SMS, Marine VHF, Voice/Sirens)
+// Scales to any country's native languages, regional dialects, and emergency broadcast networks.
 
 export class AdvisoryDispatcher {
-  constructor() {
+  constructor(nationalAdapter = null) {
     this.speechSynth = typeof window !== "undefined" ? window.speechSynthesis : null;
     this.isPlayingAudio = false;
+    this.nationalAdapter = nationalAdapter;
   }
 
-  getAdvisories(basinId, timeStep, currentLang = "default") {
+  getAdvisories(basinId, timeStep, currentLang = "default", basinData = null) {
     const advisories = {
       india: {
         Odia: {
@@ -86,14 +88,90 @@ export class AdvisoryDispatcher {
           message: `RED ALERT: Super Typhoon landfall imminent across Pearl River Delta. Catastrophic storm surge up to 4.1m forecast. Immediate enforcement of Level 1 four-stop emergency protocol. Evacuation to designated inland shelters mandatory. Emergency Hotline: 119.`,
           channelStats: { smsCount: "5,400,000 Sent", radio: "National Maritime VHF", voiceCall: "Loudspeaker Net Active" }
         }
+      },
+      philippines: {
+        Tagalog: {
+          langCode: "tl-PH",
+          title: "PANGUNAHING BABALA SA DALUYONG NG BAGYO",
+          source: "Pambansang Tanggapan sa Pagtugon sa Sakuna (NDRRMC) & PAGASA",
+          message: `BABALA SA SAKUNA: Napipintong mag-landfall ang Super Typhoon sa Tacloban at Leyte Coastal Corridor. Inaasahan ang daluyong ng bagyo na aabot sa 4.2 metro. Agarang lumikas sa itinalagang evacuation centers. Manatiling nakatutok sa radio o tumawag sa 911 para sa saklolo.`,
+          channelStats: { smsCount: "4,500,000 Sent (RA 10639)", radio: "VHF Marine Ch. 16 Active", voiceCall: "Barangay Sirens Live" }
+        },
+        Waray: {
+          langCode: "war-PH",
+          title: "DELIKADO NGA PAHIBARO HIT DAKU NGA BALUD",
+          source: "Lokal nga Sangay han Disaster Risk Reduction (Leyte)",
+          message: `PAHIBARO: Daku nga balud ngan makusog nga bagyo maigo ha baybayon han Tacloban. Lumakat dayon tipakadto ha lig-on nga evacuation center. Ayaw pagpabilin ha higad han dagat. Tawag ha 911 kon nagkikinahanglan hin bulig.`,
+          channelStats: { smsCount: "1,200,000 Sent", radio: "Bombo Radyo Tacloban", voiceCall: "Barangay Megaphones" }
+        },
+        English: {
+          langCode: "en-PH",
+          title: "SUPER TYPHOON CATASTROPHIC SURGE ADVISORY",
+          source: "NDRRMC National Operations Center",
+          message: `CATASTROPHIC STORM SURGE ADVISORY: Peak storm surge up to 4.2m forecast along San Pedro Bay and Tacloban coastal reaches. Pre-emptive forced evacuation enforced under Republic Act 10639. Harbor cranes secured; power de-energized. Dial 911 for emergency dispatch.`,
+          channelStats: { smsCount: "6,200,000 Telco Push", radio: "Coast Guard VHF 16", voiceCall: "Coastal Siren Network" }
+        }
+      },
+      usa: {
+        English: {
+          langCode: "en-US",
+          title: "LIFE-THREATENING STORM SURGE WARNING",
+          source: "NOAA National Hurricane Center & FEMA IPAWS",
+          message: `LIFE-THREATENING EMERGENCY: Major Hurricane landfall imminent along the Tampa Bay and Central Florida Gulf Coast. Inundation levels 3.5m to 4.5m above ground level expected. Evacuate immediately if ordered by local officials. Do not drive through flooded roads. Emergency: 911.`,
+          channelStats: { smsCount: "2,800,000 WEA Push (Ch 4370)", radio: "NOAA Weather Radio SAME", voiceCall: "County Siren Grid Active" }
+        },
+        Spanish: {
+          langCode: "es-US",
+          title: "AVISO DE MAREJADA CICLÓNICA MORTAL",
+          source: "FEMA Centro Nacional de Huracanes",
+          message: `EMERGENCIA CRÍTICA: Peligro inminente de inundación de 3.5 a 4.5 metros por marejada ciclónica en la costa de la Bahía de Tampa. Evacúe inmediatamente si se encuentra en zonas de evacuación obligatoria. Manténgase alejado de los cables eléctricos caídos. Llame al 911 en caso de rescate.`,
+          channelStats: { smsCount: "1,100,000 WEA Enviados", radio: "Radio Alerta NOAA Español", voiceCall: "Red de Sirenas Activa" }
+        }
+      },
+      mozambique: {
+        Portuguese: {
+          langCode: "pt-MZ",
+          title: "AVISO DE CALAMIDADE: ONDAS DE TEMPESTADE",
+          source: "Instituto Nacional de Gestão de Desastres (INGD) & INAM",
+          message: `ALERTA VERMELHO: Ciclone tropical de grande intensidade aproximando-se da Baía de Sofala e Porto da Beira. Elevação catastrófica das águas de até 3.4m. Evacuação imediata de todas as zonas ribeirinhas do Búzi e Púnguè. Linha de emergência nacional: 800 112 112.`,
+          channelStats: { smsCount: "740,000 SMS Celular", radio: "Rádio Moçambique Beira", voiceCall: "Sirenes Comunitárias" }
+        },
+        English: {
+          langCode: "en-GB",
+          title: "SEVERE TROPICAL CYCLONE IMPACT ADVISORY",
+          source: "INGD Emergency Operations Center (Beira)",
+          message: `CRITICAL ALERT: Tropical Cyclone destructive landfall imminent near Beira Port. Storm surge anomaly up to 3.4m projected. Immediate inland displacement directed for low-lying settlements. Port cargo operations halted. Emergency Hotline: 800 112 112.`,
+          channelStats: { smsCount: "450,000 SMS Push", radio: "Marine VHF Ch. 16", voiceCall: "Megaphone Broadcast" }
+        }
       }
     };
 
-    const basinAdvisories = advisories[basinId] || advisories.india;
-    const selectedLang = currentLang !== "default" && basinAdvisories[currentLang] ? currentLang : Object.keys(basinAdvisories)[0];
+    let basinAdvisories = advisories[basinId];
+
+    // If custom imported basin or unknown country, dynamically generate valid localized advisory
+    if (!basinAdvisories) {
+      const countryName = basinData?.country || "Sovereign Coastal Territory";
+      const stormName = basinData?.stormName || "Active Severe Surge Event";
+      const surgeH = timeStep?.surgeHeightM || 3.0;
+      const windK = timeStep?.maxWindSpeedKmph || 120;
+      const agency = basinData?.agencyName || "National Disaster Management Agency";
+
+      basinAdvisories = {
+        English: {
+          langCode: "en-US",
+          title: `EMERGENCY COASTAL SURGE ADVISORY: ${stormName}`,
+          source: `${agency} & Maritime Meteorological Service`,
+          message: `CRITICAL ALERT: ${stormName} approaching coastal corridor with peak storm surge of ${surgeH}m and sustained winds of ${windK} km/h. Mandatory evacuation of low-lying flood perimeters in effect. Vessel movements suspended. Contact national emergency dispatch for evacuation corridors.`,
+          channelStats: { smsCount: "Cell Broadcast Active", radio: "Marine VHF Ch. 16 / NAVTEX", voiceCall: "Civil Defense Sirens" }
+        }
+      };
+    }
+
+    const availableLanguages = Object.keys(basinAdvisories);
+    const selectedLang = currentLang !== "default" && basinAdvisories[currentLang] ? currentLang : availableLanguages[0];
 
     return {
-      availableLanguages: Object.keys(basinAdvisories),
+      availableLanguages,
       currentLang: selectedLang,
       data: basinAdvisories[selectedLang]
     };
