@@ -31,6 +31,10 @@ class AegisApp {
     this.activeLayers = {
       liveRadar: true,
       liveSatellite: false,
+      nasaHd: false,
+      infrared: false,
+      firms: false,
+      windStreamlines: true,
       track: true,
       cone: true,
       surge: true,
@@ -43,6 +47,12 @@ class AegisApp {
     this.basemaps = {
       dark: {
         base: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+        subdomains: "abcd",
+        maxZoom: 20,
+        attribution: "&copy; OpenStreetMap &copy; CARTO"
+      },
+      light: {
+        base: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
         subdomains: "abcd",
         maxZoom: 20,
         attribution: "&copy; OpenStreetMap &copy; CARTO"
@@ -86,8 +96,14 @@ class AegisApp {
       geeRasterOverlay: null,
       liveRadarOverlay: null,
       liveSatelliteOverlay: null,
+      nasaHdOverlay: null,
+      infraredOverlay: null,
+      firmsOverlay: null,
+      windCanvasLayer: null,
       infraGroup: L.layerGroup()
     };
+    this.windAnimFrame = null;
+    this._windCanvas = null;
 
     this.init();
   }
@@ -174,6 +190,42 @@ class AegisApp {
       satCb.addEventListener("change", (e) => {
         this.activeLayers.liveSatellite = e.target.checked;
         this.renderLiveSatellite();
+      });
+    }
+
+    const nasaHdCb = document.getElementById("layerNasaHd");
+    if (nasaHdCb) {
+      nasaHdCb.checked = this.activeLayers.nasaHd;
+      nasaHdCb.addEventListener("change", (e) => {
+        this.activeLayers.nasaHd = e.target.checked;
+        this.renderNasaHd();
+      });
+    }
+
+    const irCb = document.getElementById("layerInfrared");
+    if (irCb) {
+      irCb.checked = this.activeLayers.infrared;
+      irCb.addEventListener("change", (e) => {
+        this.activeLayers.infrared = e.target.checked;
+        this.renderInfrared();
+      });
+    }
+
+    const firmsCb = document.getElementById("layerFirms");
+    if (firmsCb) {
+      firmsCb.checked = this.activeLayers.firms;
+      firmsCb.addEventListener("change", (e) => {
+        this.activeLayers.firms = e.target.checked;
+        this.renderFirms();
+      });
+    }
+
+    const windCb = document.getElementById("layerWindStreamlines");
+    if (windCb) {
+      windCb.checked = this.activeLayers.windStreamlines;
+      windCb.addEventListener("change", (e) => {
+        this.activeLayers.windStreamlines = e.target.checked;
+        this.renderWindStreamlines();
       });
     }
 
@@ -495,6 +547,10 @@ class AegisApp {
     this.renderGeeRaster();
     this.renderLiveRadar();
     this.renderLiveSatellite();
+    this.renderNasaHd();
+    this.renderInfrared();
+    this.renderFirms();
+    this.renderWindStreamlines();
     this.renderInfrastructure();
 
     // Update Infrastructure Mini-List
@@ -762,6 +818,203 @@ class AegisApp {
       maxZoom: 9,
       attribution: "Live Satellite &copy; NASA GIBS / NOAA"
     }).addTo(this.map);
+  }
+
+  // NASA GIBS High-Definition TrueColor Daily Satellite (Aqua/Terra MODIS)
+  renderNasaHd() {
+    if (this.mapLayers.nasaHdOverlay) {
+      this.map.removeLayer(this.mapLayers.nasaHdOverlay);
+      this.mapLayers.nasaHdOverlay = null;
+    }
+
+    if (!this.activeLayers.nasaHd || this.isLowBandwidthMode) return;
+
+    const today = new Date();
+    today.setDate(today.getDate() - 1);
+    const dateStr = today.toISOString().split("T")[0];
+    const url = `https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/MODIS_Terra_CorrectedReflectance_TrueColor/default/${dateStr}/GoogleMapsCompatible_Level9/{z}/{y}/{x}.jpg`;
+
+    this.mapLayers.nasaHdOverlay = L.tileLayer(url, {
+      opacity: 0.92,
+      zIndex: 360,
+      maxZoom: 9,
+      attribution: "NASA GIBS Terra/Aqua HD TrueColor"
+    }).addTo(this.map);
+  }
+
+  // Geostationary Clean Infrared (GOES-East / Himawari-8/9 Band 13 Deep Convection)
+  renderInfrared() {
+    if (this.mapLayers.infraredOverlay) {
+      this.map.removeLayer(this.mapLayers.infraredOverlay);
+      this.mapLayers.infraredOverlay = null;
+    }
+
+    if (!this.activeLayers.infrared || this.isLowBandwidthMode) return;
+
+    // Use Himawari for Asia/Pacific/Indian Ocean or GOES-East for Americas
+    let irLayer = "Himawari_AHI_Band13_Clean_Infrared";
+    const [cLat, cLng] = this.currentBasin.center;
+    if (cLng < -30) {
+      irLayer = "GOES-East_ABI_Band13_Clean_Infrared";
+    }
+
+    this.mapLayers.infraredOverlay = L.tileLayer.wms("https://gibs.earthdata.nasa.gov/wms/epsg3857/best/wms.cgi", {
+      layers: irLayer,
+      format: "image/png",
+      transparent: true,
+      opacity: 0.72,
+      zIndex: 380,
+      attribution: "Live Geostationary Clean IR &copy; NASA GIBS / JMA / NOAA"
+    }).addTo(this.map);
+  }
+
+  // Active Fires & Thermal Anomalies (NASA LANCE FIRMS / MODIS & VIIRS 375m)
+  renderFirms() {
+    if (this.mapLayers.firmsOverlay) {
+      this.map.removeLayer(this.mapLayers.firmsOverlay);
+      this.mapLayers.firmsOverlay = null;
+    }
+
+    if (!this.activeLayers.firms || this.isLowBandwidthMode) return;
+
+    this.mapLayers.firmsOverlay = L.tileLayer.wms("https://gibs.earthdata.nasa.gov/wms/epsg3857/best/wms.cgi", {
+      layers: "MODIS_Terra_Thermal_Anomalies_All",
+      format: "image/png",
+      transparent: true,
+      opacity: 0.95,
+      zIndex: 420,
+      attribution: "Active Fires &amp; Thermal Anomalies &copy; NASA FIRMS"
+    }).addTo(this.map);
+  }
+
+  // Atmospheric Wind Particle Streamlines (GFS / DWD Numerical Model Simulation)
+  renderWindStreamlines() {
+    if (this.mapLayers.windCanvasLayer) {
+      this.map.removeLayer(this.mapLayers.windCanvasLayer);
+      this.mapLayers.windCanvasLayer = null;
+    }
+    if (this.windAnimFrame) {
+      cancelAnimationFrame(this.windAnimFrame);
+      this.windAnimFrame = null;
+    }
+
+    if (!this.activeLayers.windStreamlines || this.isLowBandwidthMode) return;
+
+    // Dynamic Leaflet Canvas Layer for Animated Cyclonic Wind Streamlines
+    const that = this;
+    const CanvasWindLayer = L.Layer.extend({
+      onAdd: function(map) {
+        const pane = map.getPane("overlayPane");
+        const canvas = L.DomUtil.create("canvas", "leaflet-wind-streamlines-canvas");
+        canvas.style.position = "absolute";
+        canvas.style.top = "0";
+        canvas.style.left = "0";
+        canvas.style.pointerEvents = "none";
+        canvas.style.zIndex = "370";
+        pane.appendChild(canvas);
+        that._windCanvas = canvas;
+
+        const resize = () => {
+          const size = map.getSize();
+          const bounds = map.getBounds();
+          const topLeft = map.latLngToLayerPoint(bounds.getNorthWest());
+          L.DomUtil.setPosition(canvas, topLeft);
+          canvas.width = size.x;
+          canvas.height = size.y;
+        };
+
+        map.on("move", resize);
+        map.on("resize", resize);
+        resize();
+        that.initWindParticles(canvas);
+      },
+      onRemove: function(map) {
+        if (that._windCanvas && that._windCanvas.parentNode) {
+          that._windCanvas.parentNode.removeChild(that._windCanvas);
+        }
+        if (that.windAnimFrame) {
+          cancelAnimationFrame(that.windAnimFrame);
+          that.windAnimFrame = null;
+        }
+      }
+    });
+
+    this.mapLayers.windCanvasLayer = new CanvasWindLayer();
+    this.map.addLayer(this.mapLayers.windCanvasLayer);
+  }
+
+  initWindParticles(canvas) {
+    const ctx = canvas.getContext("2d");
+    const numParticles = 480;
+    const particles = [];
+
+    const resetParticle = (p) => {
+      const angle = Math.random() * Math.PI * 2;
+      const radius = 25 + Math.random() * (Math.min(canvas.width, canvas.height) * 0.7);
+      p.angle = angle;
+      p.radius = radius;
+      p.life = Math.random() * 70 + 30;
+      p.maxLife = p.life;
+      p.speed = (Math.random() * 0.02 + 0.015) * Math.max(0.8, this.currentStep.maxWindSpeedKmph / 110);
+    };
+
+    for (let i = 0; i < numParticles; i++) {
+      const p = {};
+      resetParticle(p);
+      p.life = Math.random() * p.maxLife;
+      particles.push(p);
+    }
+
+    const animate = () => {
+      if (!this.activeLayers.windStreamlines || !this._windCanvas) return;
+
+      // Gentle fade for clean fluid particle trails
+      ctx.fillStyle = "rgba(255, 255, 255, 0.08)";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const centerPoint = this.map.latLngToContainerPoint(this.currentStep.eyeCoord);
+      const isNorthern = this.currentBasin.center[0] >= 0;
+      const rot = isNorthern ? 1 : -1; // Counter-clockwise for Northern Hemisphere, clockwise for Southern
+
+      ctx.lineWidth = 1.4;
+
+      for (let i = 0; i < particles.length; i++) {
+        const p = particles[i];
+        p.life--;
+
+        const prevX = centerPoint.x + Math.cos(p.angle) * p.radius;
+        const prevY = centerPoint.y + Math.sin(p.angle) * p.radius;
+
+        // Inflow cross-isobar spiral angle ~ 18 degrees
+        p.angle += rot * p.speed;
+        p.radius -= 0.65 * (this.currentStep.maxWindSpeedKmph / 90);
+
+        const nextX = centerPoint.x + Math.cos(p.angle) * p.radius;
+        const nextY = centerPoint.y + Math.sin(p.angle) * p.radius;
+
+        if (p.life <= 0 || p.radius <= 12 || nextX < 0 || nextX > canvas.width || nextY < 0 || nextY > canvas.height) {
+          resetParticle(p);
+          continue;
+        }
+
+        const alpha = Math.min(1, p.life / 18) * 0.75;
+        if (p.radius < 90) {
+          ctx.strokeStyle = `rgba(255, 48, 0, ${alpha})`;
+        } else {
+          ctx.strokeStyle = `rgba(0, 0, 0, ${alpha * 0.6})`;
+        }
+
+        ctx.beginPath();
+        ctx.moveTo(prevX, prevY);
+        ctx.lineTo(nextX, nextY);
+        ctx.stroke();
+      }
+
+      this.windAnimFrame = requestAnimationFrame(animate);
+    };
+
+    if (this.windAnimFrame) cancelAnimationFrame(this.windAnimFrame);
+    this.windAnimFrame = requestAnimationFrame(animate);
   }
 
   updateInfrastructureList() {

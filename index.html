@@ -244,14 +244,34 @@
           <h3 class="section-heading"><i class="ti ti-layers-intersect"></i> <span class="swiss-num">02.</span> TACTICAL OVERLAYS</h3>
           <div class="layer-toggle-list">
             <label class="toggle-item">
-              <input type="checkbox" id="layerLiveRadar" aria-label="Toggle Live Doppler Weather Radar" />
+              <input type="checkbox" id="layerLiveRadar" checked aria-label="Toggle Live Doppler Weather Radar" />
               <span class="toggle-slider"></span>
-              <span class="toggle-text"><span class="indicator-dot green blinking" style="display:inline-block; vertical-align:middle; margin-right:4px;"></span>Live Doppler Radar (NEXRAD)</span>
+              <span class="toggle-text"><span class="indicator-dot blinking" style="display:inline-block; vertical-align:middle; margin-right:5px; background-color:#FF3000;"></span>Live Doppler Radar (NEXRAD)</span>
             </label>
             <label class="toggle-item">
               <input type="checkbox" id="layerLiveSatellite" aria-label="Toggle Real Meteorological Satellite Clouds" />
               <span class="toggle-slider"></span>
-              <span class="toggle-text"><span class="indicator-dot" style="display:inline-block; vertical-align:middle; margin-right:4px; background-color:#38bdf8;"></span>Live Satellite Clouds (NASA GIBS)</span>
+              <span class="toggle-text"><span class="indicator-dot" style="display:inline-block; vertical-align:middle; margin-right:5px; background-color:#000000;"></span>Live Satellite Clouds (NASA GIBS)</span>
+            </label>
+            <label class="toggle-item">
+              <input type="checkbox" id="layerNasaHd" aria-label="Toggle NASA HD TrueColor Satellite Imagery" />
+              <span class="toggle-slider"></span>
+              <span class="toggle-text"><span class="indicator-dot" style="display:inline-block; vertical-align:middle; margin-right:5px; background-color:#10b981;"></span>HD TrueColor Sat (Terra/Aqua)</span>
+            </label>
+            <label class="toggle-item">
+              <input type="checkbox" id="layerInfrared" aria-label="Toggle Infrared Storm Temperature (GOES/Himawari)" />
+              <span class="toggle-slider"></span>
+              <span class="toggle-text"><span class="indicator-dot" style="display:inline-block; vertical-align:middle; margin-right:5px; background-color:#8b5cf6;"></span>Infrared Storm Temp (GOES/Himawari)</span>
+            </label>
+            <label class="toggle-item">
+              <input type="checkbox" id="layerFirms" aria-label="Toggle NASA FIRMS Active Thermal Hotspots & Wildfires" />
+              <span class="toggle-slider"></span>
+              <span class="toggle-text"><span class="indicator-dot" style="display:inline-block; vertical-align:middle; margin-right:5px; background-color:#f59e0b;"></span>Thermal Hotspots (NASA FIRMS)</span>
+            </label>
+            <label class="toggle-item">
+              <input type="checkbox" id="layerWindStreamlines" checked aria-label="Toggle Atmospheric Wind Particle Streamlines" />
+              <span class="toggle-slider"></span>
+              <span class="toggle-text"><span class="indicator-dot blinking" style="display:inline-block; vertical-align:middle; margin-right:5px; background-color:#0284c7;"></span>Atmospheric Wind Particles (GFS)</span>
             </label>
             <label class="toggle-item">
               <input type="checkbox" id="layerTrack" checked aria-label="Toggle Cyclone Path Layer" />
@@ -274,7 +294,7 @@
               <span class="toggle-text">Sentinel-1 SAR Floods (GEE)</span>
             </label>
             <label class="toggle-item">
-              <input type="checkbox" id="layerInfrastructure" checked aria-label="Toggle Critical Infrastructure Layer" />
+              <input type="checkbox" id="layerInfrastructure" checked aria-label="Toggle Critical Infrastructure Network" />
               <span class="toggle-slider"></span>
               <span class="toggle-text">Critical Infrastructure Network</span>
             </label>
@@ -327,8 +347,11 @@
 
         <!-- Floating Basemap Selector on Map -->
         <div class="map-basemap-dock" role="group" aria-label="Select Map Basemap Layer">
-          <button class="btn-basemap-option active" data-basemap="dark" title="Esri Tactical Dark Gray Basemap">
+          <button class="btn-basemap-option active" data-basemap="dark" title="CartoDB Dark Matter High-Contrast Basemap">
             <i class="ti ti-moon"></i> <span>Dark</span>
+          </button>
+          <button class="btn-basemap-option" data-basemap="light" title="CartoDB Positron Swiss Clean Light Basemap">
+            <i class="ti ti-sun"></i> <span>Light</span>
           </button>
           <button class="btn-basemap-option" data-basemap="satellite" title="Esri Real High-Resolution Satellite Imagery">
             <i class="ti ti-satellite"></i> <span>Satellite</span>
