@@ -304,17 +304,18 @@ html, body {
   background: #FFFFFF;
   color: #000000;
   border: 2px solid #000000;
-  padding: 4px 10px;
-  height: 32px;
+  padding: 2px 8px;
+  height: 30px;
   font-family: var(--font-swiss);
-  font-size: 0.78rem;
+  font-size: 0.74rem;
   font-weight: 700;
   cursor: pointer;
   outline: none;
   transition: all var(--motion-fast);
-  max-width: 270px;
+  max-width: 320px;
   text-overflow: ellipsis;
   text-transform: uppercase;
+  box-sizing: border-box;
 }
 
 .basin-dropdown:hover,
@@ -333,7 +334,7 @@ html, body {
   display: flex;
   align-items: center;
   gap: 6px;
-  height: 28px;
+  height: 30px;
   padding: 2px 8px;
   border: 2px solid #000000;
   font-family: var(--text-mono);
@@ -343,6 +344,7 @@ html, body {
   white-space: nowrap;
   text-transform: uppercase;
   transition: all var(--motion-fast);
+  box-sizing: border-box;
 }
 
 .status-chip:hover {
@@ -398,7 +400,23 @@ html, body {
 .header-actions {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
+}
+
+.header-actions button {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+.header-actions button i.ti {
+  font-size: 1.05rem;
+  line-height: 1;
 }
 
 /* ==========================================================================
@@ -950,6 +968,10 @@ button:active {
 .tactical-chip input:checked ~ .chip-inner i.icon-nasahd { color: #f59e0b !important; }
 .tactical-chip input:checked ~ .chip-inner i.icon-ir { color: #f43f5e !important; }
 .tactical-chip input:checked ~ .chip-inner i.icon-firms { color: #ff4500 !important; }
+.tactical-chip input:checked ~ .chip-inner i.icon-evac { color: #ef4444 !important; }
+.tactical-chip input:checked ~ .chip-inner i.icon-bathy { color: #00e5ff !important; }
+.tactical-chip input:checked ~ .chip-inner i.icon-grid { color: #fbbf24 !important; }
+.tactical-chip input:checked ~ .chip-inner i.icon-marine { color: #2dd4bf !important; }
 
 /* ==========================================================================
    Asset Exposure Micro-List

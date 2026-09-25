@@ -15,6 +15,7 @@ import { ResourceTracker, ResourceCategory, ResourceStatus } from "./engine/reso
 import { InterAgencyLogger } from "./engine/interagency_log.js";
 import { LiveStreamEngine } from "./engine/live_stream.js";
 import { CikrBridgeEngine } from "./engine/cikr_bridge.js";
+import { TacticalOverlaysEngine } from "./engine/tactical_overlays.js";
 
 class AegisApp {
   constructor() {
@@ -41,7 +42,11 @@ class AegisApp {
       surge: true,
       gee: false,
       infrastructure: true,
-      highways: true
+      highways: true,
+      evacZones: true,
+      bathymetry: false,
+      gridTransmission: true,
+      marineCorridor: false
     };
 
     // Basemaps (Esri Tactical Dark, Esri Light, Real Satellite Imagery, Topographic)
@@ -88,6 +93,7 @@ class AegisApp {
     this.logger = new InterAgencyLogger();
     this.liveStream = new LiveStreamEngine({ intervalMs: 11000 });
     this.cikr = new CikrBridgeEngine();
+    this.tacticalOverlays = new TacticalOverlaysEngine();
     this.currentSelectedAsset = null;
 
     // Map & Layer References
@@ -107,7 +113,11 @@ class AegisApp {
       firmsOverlay: null,
       windCanvasLayer: null,
       highwaysGroup: L.layerGroup(),
-      infraGroup: L.layerGroup()
+      infraGroup: L.layerGroup(),
+      evacZonesGroup: L.layerGroup(),
+      bathymetryGroup: L.layerGroup(),
+      gridTransmissionGroup: L.layerGroup(),
+      marineCorridorsGroup: L.layerGroup()
     };
     this.windAnimFrame = null;
     this._windCanvas = null;
@@ -507,6 +517,10 @@ class AegisApp {
     // Initialize Default Basemap (Tactical Dark)
     this.switchBasemap(this.currentBasemap);
 
+    this.mapLayers.evacZonesGroup.addTo(this.map);
+    this.mapLayers.bathymetryGroup.addTo(this.map);
+    this.mapLayers.gridTransmissionGroup.addTo(this.map);
+    this.mapLayers.marineCorridorsGroup.addTo(this.map);
     this.mapLayers.highwaysGroup.addTo(this.map);
     this.mapLayers.infraGroup.addTo(this.map);
     setTimeout(() => this.map.invalidateSize(), 200);
@@ -559,7 +573,11 @@ class AegisApp {
       ["layerNasaHd", "nasaHd", () => this.renderNasaHd()],
       ["layerInfrared", "infrared", () => this.renderInfrared()],
       ["layerFirms", "firms", () => this.renderFirms()],
-      ["layerWindStreamlines", "windStreamlines", () => this.renderWindStreamlines()]
+      ["layerWindStreamlines", "windStreamlines", () => this.renderWindStreamlines()],
+      ["layerEvacZones", "evacZones", () => this.renderEvacZones()],
+      ["layerBathymetry", "bathymetry", () => this.renderBathymetry()],
+      ["layerGridTransmission", "gridTransmission", () => this.renderGridTransmission()],
+      ["layerMarineCorridor", "marineCorridor", () => this.renderMarineCorridors()]
     ];
 
     layerConfigs.forEach(([id, prop, fn]) => {
@@ -854,7 +872,11 @@ class AegisApp {
       layerLiveSatellite: "liveSatellite",
       layerNasaHd: "nasaHd",
       layerInfrared: "infrared",
-      layerFirms: "firms"
+      layerFirms: "firms",
+      layerEvacZones: "evacZones",
+      layerBathymetry: "bathymetry",
+      layerGridTransmission: "gridTransmission",
+      layerMarineCorridor: "marineCorridor"
     };
     Object.entries(mapping).forEach(([elId, key]) => {
       const el = document.getElementById(elId);
@@ -870,6 +892,10 @@ class AegisApp {
       this.activeLayers.windStreamlines = true;
       this.activeLayers.highways = true;
       this.activeLayers.infrastructure = true;
+      this.activeLayers.evacZones = true;
+      this.activeLayers.gridTransmission = true;
+      this.activeLayers.bathymetry = false;
+      this.activeLayers.marineCorridor = false;
       this.activeLayers.gee = false;
       this.activeLayers.liveRadar = false;
       this.activeLayers.liveSatellite = false;
@@ -883,6 +909,10 @@ class AegisApp {
       this.activeLayers.windStreamlines = false;
       this.activeLayers.highways = false;
       this.activeLayers.infrastructure = false;
+      this.activeLayers.evacZones = false;
+      this.activeLayers.gridTransmission = false;
+      this.activeLayers.bathymetry = true;
+      this.activeLayers.marineCorridor = true;
       this.activeLayers.gee = true;
       this.activeLayers.liveRadar = true;
       this.activeLayers.liveSatellite = true;
@@ -906,6 +936,10 @@ class AegisApp {
     this.renderSurge();
     this.renderHighways();
     this.renderInfrastructure();
+    this.renderEvacZones();
+    this.renderBathymetry();
+    this.renderGridTransmission();
+    this.renderMarineCorridors();
     this.renderGeeRaster();
     this.renderLiveRadar();
     this.renderLiveSatellite();
@@ -1016,6 +1050,10 @@ class AegisApp {
     this.renderWindStreamlines();
     this.renderHighways();
     this.renderInfrastructure();
+    this.renderEvacZones();
+    this.renderBathymetry();
+    this.renderGridTransmission();
+    this.renderMarineCorridors();
 
     // Update Infrastructure Mini-List
     this.updateInfrastructureList();
@@ -1361,6 +1399,182 @@ class AegisApp {
           </p>
         </div>
       `);
+    });
+  }
+
+  // 1. Coastal Evacuation Zones (Tiered Mandatory Zone A / Advisory Zone B)
+  renderEvacZones() {
+    this.mapLayers.evacZonesGroup.clearLayers();
+    if (!this.activeLayers.evacZones) return;
+
+    const zones = this.tacticalOverlays.getEvacZones(this.currentBasinKey, this.currentStep);
+    zones.forEach(zone => {
+      const poly = L.polygon(zone.polygon, {
+        color: zone.color,
+        weight: 2,
+        dashArray: "6, 4",
+        fillColor: zone.color,
+        fillOpacity: zone.fillOpacity
+      }).addTo(this.mapLayers.evacZonesGroup);
+
+      poly.bindPopup(`
+        <div style="font-family: var(--font-swiss); font-size: 12px; color: #000000; min-width: 250px; text-transform: uppercase;">
+          <div style="font-size: 10px; font-weight: 900; color: ${zone.color}; letter-spacing: 0.08em; margin-bottom: 2px;">
+            <i class="ti ti-shield-alert"></i> COASTAL EVACUATION ZONE
+          </div>
+          <strong style="font-size: 13px; font-weight: 900; color: #000000; line-height: 1.2;">${zone.name}</strong><br/>
+          <div style="margin: 4px 0;">
+            <span style="display:inline-block; padding: 2px 6px; font-weight: 900; background: ${zone.color}; color: #FFFFFF; font-size: 10px; letter-spacing: 0.05em;">
+              ${zone.tier}
+            </span>
+          </div>
+          <div style="font-family: var(--text-mono); font-size: 11px; margin-top: 4px;">
+            <div><strong>POPULATION AT RISK:</strong> ${zone.popAtRisk}</div>
+            <div><strong>CLEARANCE STATUS:</strong> ${zone.clearanceStatus}</div>
+            <div><strong>ELEVATION PROFILE:</strong> ${zone.elevationProfile}</div>
+          </div>
+          <p style="margin-top: 6px; font-size: 11px; color: #262626; text-transform: none; line-height: 1.35; border-top: 1px solid #000000; padding-top: 4px;">
+            <strong>Designated Shelters:</strong> ${zone.designatedShelters}
+          </p>
+        </div>
+      `);
+    });
+  }
+
+  // 2. Coastal Bathymetry & Shoaling Contours (GEBCO Depth Isobaths)
+  renderBathymetry() {
+    this.mapLayers.bathymetryGroup.clearLayers();
+    if (!this.activeLayers.bathymetry) return;
+
+    const contours = this.tacticalOverlays.getBathymetry(this.currentBasinKey);
+    contours.forEach(c => {
+      const line = L.polyline(c.coords, {
+        color: c.color,
+        weight: c.weight,
+        dashArray: "4, 4",
+        opacity: 0.85
+      }).addTo(this.mapLayers.bathymetryGroup);
+
+      line.bindPopup(`
+        <div style="font-family: var(--font-swiss); font-size: 12px; color: #000000; min-width: 230px; text-transform: uppercase;">
+          <div style="font-size: 10px; font-weight: 900; color: ${c.color}; letter-spacing: 0.08em; margin-bottom: 2px;">
+            <i class="ti ti-ripple"></i> GEBCO BATHYMETRIC CONTOUR
+          </div>
+          <strong style="font-size: 13px; font-weight: 900; color: #000000;">DEPTH: ${c.depthM}M MSL</strong><br/>
+          <div style="font-family: var(--text-mono); font-size: 11px; margin-top: 4px;">
+            <div><strong>CLASSIFICATION:</strong> ${c.label}</div>
+            <div><strong>SHOALING FACTOR:</strong> ${c.shoalingFactor}</div>
+          </div>
+          <p style="margin-top: 6px; font-size: 11px; color: #404040; text-transform: none; line-height: 1.35; border-top: 1px solid #000000; padding-top: 4px;">
+            Hydrodynamic surge amplification zone. Shallow water shoaling compresses deep-sea kinetic energy into elevated coastal surge crests.
+          </p>
+        </div>
+      `);
+    });
+  }
+
+  // 3. High-Voltage Power Transmission Lines & Substation Inter-Ties
+  renderGridTransmission() {
+    this.mapLayers.gridTransmissionGroup.clearLayers();
+    if (!this.activeLayers.gridTransmission) return;
+
+    const lines = this.tacticalOverlays.getPowerGrid(this.currentBasinKey, this.currentStep, this.cikr?.microgridIslanding);
+    lines.forEach(l => {
+      // Glow underlay
+      L.polyline(l.coords, {
+        color: "#000000",
+        weight: 5,
+        opacity: 0.8
+      }).addTo(this.mapLayers.gridTransmissionGroup);
+
+      const line = L.polyline(l.coords, {
+        color: l.color,
+        weight: 3,
+        dashArray: l.status.includes("TRIPPED") ? "6, 6" : null,
+        opacity: 0.95
+      }).addTo(this.mapLayers.gridTransmissionGroup);
+
+      line.bindPopup(`
+        <div style="font-family: var(--font-swiss); font-size: 12px; color: #000000; min-width: 250px; text-transform: uppercase;">
+          <div style="font-size: 10px; font-weight: 900; color: #F59E0B; letter-spacing: 0.08em; margin-bottom: 2px;">
+            <i class="ti ti-bolt"></i> HIGH-VOLTAGE TRANSMISSION GRID
+          </div>
+          <strong style="font-size: 13px; font-weight: 900; color: #000000; line-height: 1.2;">${l.name}</strong><br/>
+          <div style="margin: 4px 0;">
+            <span style="display:inline-block; padding: 2px 6px; font-weight: 900; background: ${l.color}; color: #FFFFFF; font-size: 10px; letter-spacing: 0.05em;">
+              STATUS: ${l.status}
+            </span>
+          </div>
+          <div style="font-family: var(--text-mono); font-size: 11px; margin-top: 4px;">
+            <div><strong>VOLTAGE:</strong> ${l.voltage}</div>
+            <div><strong>CAPACITY:</strong> ${l.capacityMw}</div>
+            <div><strong>GRID OPERATOR:</strong> ${l.operator}</div>
+          </div>
+          <p style="margin-top: 6px; font-size: 11px; color: #262626; text-transform: none; line-height: 1.35; border-top: 1px solid #000000; padding-top: 4px;">
+            ${l.downstream}
+          </p>
+        </div>
+      `);
+    });
+  }
+
+  // 4. Commercial Maritime Navigational Channels & Vessel Shelter Anchorages
+  renderMarineCorridors() {
+    this.mapLayers.marineCorridorsGroup.clearLayers();
+    if (!this.activeLayers.marineCorridor) return;
+
+    const corridors = this.tacticalOverlays.getMarineCorridors(this.currentBasinKey, this.currentStep);
+    corridors.forEach(m => {
+      if (m.polygon) {
+        const poly = L.polygon(m.polygon, {
+          color: m.color,
+          weight: 2,
+          dashArray: "4, 4",
+          fillColor: m.color,
+          fillOpacity: 0.25
+        }).addTo(this.mapLayers.marineCorridorsGroup);
+
+        poly.bindPopup(`
+          <div style="font-family: var(--font-swiss); font-size: 12px; color: #000000; min-width: 240px; text-transform: uppercase;">
+            <div style="font-size: 10px; font-weight: 900; color: ${m.color}; letter-spacing: 0.08em; margin-bottom: 2px;">
+              <i class="ti ti-anchor"></i> ${m.type}
+            </div>
+            <strong style="font-size: 13px; font-weight: 900; color: #000000; line-height: 1.2;">${m.name}</strong><br/>
+            <div style="margin: 4px 0;">
+              <span style="display:inline-block; padding: 2px 6px; font-weight: 900; background: #000000; color: #FFFFFF; font-size: 10px; letter-spacing: 0.05em;">
+                STATUS: ${m.status}
+              </span>
+            </div>
+            <p style="margin-top: 6px; font-size: 11px; color: #262626; text-transform: none; line-height: 1.35; border-top: 1px solid #000000; padding-top: 4px;">
+              ${m.details}
+            </p>
+          </div>
+        `);
+      } else if (m.coords) {
+        const line = L.polyline(m.coords, {
+          color: m.color,
+          weight: m.weight || 3,
+          dashArray: m.dashArray || null,
+          opacity: 0.9
+        }).addTo(this.mapLayers.marineCorridorsGroup);
+
+        line.bindPopup(`
+          <div style="font-family: var(--font-swiss); font-size: 12px; color: #000000; min-width: 240px; text-transform: uppercase;">
+            <div style="font-size: 10px; font-weight: 900; color: ${m.color}; letter-spacing: 0.08em; margin-bottom: 2px;">
+              <i class="ti ti-anchor"></i> ${m.type}
+            </div>
+            <strong style="font-size: 13px; font-weight: 900; color: #000000; line-height: 1.2;">${m.name}</strong><br/>
+            <div style="margin: 4px 0;">
+              <span style="display:inline-block; padding: 2px 6px; font-weight: 900; background: #000000; color: #FFFFFF; font-size: 10px; letter-spacing: 0.05em;">
+                STATUS: ${m.status}
+              </span>
+            </div>
+            <p style="margin-top: 6px; font-size: 11px; color: #262626; text-transform: none; line-height: 1.35; border-top: 1px solid #000000; padding-top: 4px;">
+              ${m.details}
+            </p>
+          </div>
+        `);
+      }
     });
   }
 

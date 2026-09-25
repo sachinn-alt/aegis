@@ -154,7 +154,7 @@
             <i class="ti ti-layout-sidebar-left-collapse"></i>
           </button>
           <button id="btnCikrBridge" class="btn-ghost" title="Public-Private Infrastructure Continuity Bridge (CIKR Nexus)" aria-label="CIKR Public-Private Bridge">
-            <i class="ti ti-binary-tree"></i> <span>CIKR</span>
+            <i class="ti ti-binary-tree"></i>
           </button>
           <button id="btnNationalSystems" class="btn-ghost" title="Native Emergency Systems & OASIS CAP v1.2 Gateway" aria-label="National Systems & CAP Gateway">
             <i class="ti ti-world"></i>
@@ -291,6 +291,22 @@
               <input type="checkbox" id="layerFirms" aria-label="Toggle NASA FIRMS Active Thermal Hotspots & Wildfires" />
               <span class="chip-inner"><i class="ti ti-flame icon-firms"></i></span>
             </label>
+            <label class="tactical-chip" title="Coastal Evacuation Zones (Tiered Mandatory Zone A / Advisory Zone B)">
+              <input type="checkbox" id="layerEvacZones" checked aria-label="Toggle Coastal Evacuation Zones" />
+              <span class="chip-inner"><i class="ti ti-shield-alert icon-evac"></i></span>
+            </label>
+            <label class="tactical-chip" title="Coastal Bathymetry & Shoaling Contours (GEBCO Depth Isobaths)">
+              <input type="checkbox" id="layerBathymetry" aria-label="Toggle Coastal Bathymetry Depth Contours" />
+              <span class="chip-inner"><i class="ti ti-ripple icon-bathy"></i></span>
+            </label>
+            <label class="tactical-chip" title="High-Voltage Power Transmission Lines & Substation Inter-Ties">
+              <input type="checkbox" id="layerGridTransmission" checked aria-label="Toggle Power Grid Transmission Lines" />
+              <span class="chip-inner"><i class="ti ti-bolt icon-grid"></i></span>
+            </label>
+            <label class="tactical-chip" title="Commercial Maritime Navigational Channels & Vessel Safe Anchorages">
+              <input type="checkbox" id="layerMarineCorridor" aria-label="Toggle Maritime Navigational Channels" />
+              <span class="chip-inner"><i class="ti ti-anchor icon-marine"></i></span>
+            </label>
           </div>
         </div>
       </aside>
@@ -388,6 +404,8 @@
             <div class="legend-row"><i class="ti ti-plane" style="font-size: 11px; margin-right: 4px; color: #000000;"></i> Airport / Airbase</div>
             <div class="legend-row"><i class="ti ti-anchor" style="font-size: 11px; margin-right: 4px; color: #000000;"></i> Deepwater Seaport</div>
             <div class="legend-row"><i class="ti ti-road" style="font-size: 11px; margin-right: 4px; color: #000000;"></i> Arterial Highway</div>
+            <div class="legend-row"><i class="ti ti-shield-alert" style="font-size: 11px; margin-right: 4px; color: #EF4444;"></i> Evacuation Zone A/B</div>
+            <div class="legend-row"><i class="ti ti-bolt" style="font-size: 11px; margin-right: 4px; color: #EAB308;"></i> 220kV Grid Circuit</div>
           </div>
         </div>
 
