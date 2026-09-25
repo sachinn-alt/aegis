@@ -108,9 +108,8 @@
     <!-- Top Navigation Header -->
     <header class="eoc-header">
       <div class="brand-group">
-        <div class="radar-pulse-icon" aria-hidden="true">
-          <div class="pulse-ring"></div>
-          <span class="icon-core"><i class="ti ti-tornado"></i></span>
+        <div class="radar-pulse-icon" aria-hidden="true" title="Aegis Live Operational Vortex">
+          <img src="/favicon.svg" alt="Aegis Live Vortex" class="brand-favicon-animated" />
         </div>
         <div class="brand-text">
           <div class="title-row">
@@ -143,35 +142,25 @@
             <span class="indicator-dot blinking" aria-hidden="true"></span>
             <span id="headerStatusText">ALERT: RED</span>
           </div>
-          <div class="status-chip gee-chip">
-            <span class="indicator-dot green" aria-hidden="true"></span>
-            <span>GEE LIVE</span>
-          </div>
-          <div class="status-chip sse-chip" id="sseLiveChip" title="Real-Time Automated SSE/WebSocket Telemetry Active (No Manual Refresh)">
-            <span class="indicator-dot green blinking" aria-hidden="true"></span>
-            <span id="sseStatusText">SSE LIVE</span>
+          <div id="offlineHeaderPill" class="status-chip offline-chip hidden" title="Click to view Satcom Telemetry Reconnect HUD" role="button" tabindex="0">
+            <span class="indicator-dot blinking-red" aria-hidden="true"></span>
+            <span id="headerOfflineText">OFFLINE // LOCAL CACHED</span>
           </div>
         </div>
 
         <!-- Header Actions & Global Systems Interoperability Controls -->
         <div class="header-actions">
           <button id="btnCopFocus" class="btn-ghost" title="Full Common Operating Picture (COP) - Dismiss sidebars to inspect map" aria-label="Toggle Full COP View">
-            <i class="ti ti-layout-sidebar-left-collapse"></i> <span class="btn-text">Full COP</span>
-          </button>
-          <button id="btnToggleHighContrast" class="btn-ghost" title="Toggle High-Contrast Generator/Bunker Mode (WCAG AAA)" aria-label="High Contrast Generator Mode">
-            <i class="ti ti-contrast"></i> <span class="btn-text">Hi-Contrast</span>
+            <i class="ti ti-layout-sidebar-left-collapse"></i>
           </button>
           <button id="btnNationalSystems" class="btn-ghost" title="Native Emergency Systems & OASIS CAP v1.2 Gateway" aria-label="National Systems & CAP Gateway">
-            <i class="ti ti-world"></i> <span class="btn-text">CAP 1.2</span>
+            <i class="ti ti-world"></i>
           </button>
           <button id="btnToggleBandwidth" class="btn-ghost" title="Toggle Low-Bandwidth / Satcom Mode" aria-label="Network Bandwidth Mode">
-            <i class="ti ti-antenna"></i> <span id="bandwidthModeLabel" class="btn-text">Net: Live</span>
-          </button>
-          <button id="btnApiKey" class="btn-ghost" title="Configure Google Gemini API Key" aria-label="Gemini API Key configuration">
-            <i class="ti ti-key"></i> <span class="btn-text">Key</span>
+            <i class="ti ti-antenna"></i>
           </button>
           <button id="btnSitrep" class="btn-accent" title="Download Official Situation Report" aria-label="Generate Executive Situation Report">
-            <i class="ti ti-file-text"></i> <span class="btn-text">SITREP</span>
+            <i class="ti ti-file-text"></i>
           </button>
         </div>
       </div>
@@ -242,78 +231,51 @@
         <!-- Layer Toggles Section -->
         <div class="panel-section layer-controls-card">
           <h3 class="section-heading"><i class="ti ti-layers-intersect"></i> <span class="swiss-num">02.</span> TACTICAL OVERLAYS</h3>
-          <div class="layer-toggle-list">
-            <label class="toggle-item">
-              <input type="checkbox" id="layerLiveRadar" checked aria-label="Toggle Live Doppler Weather Radar" />
-              <span class="toggle-slider"></span>
-              <span class="toggle-text"><span class="indicator-dot blinking" style="display:inline-block; vertical-align:middle; margin-right:5px; background-color:#FF3000;"></span>Live Doppler Radar (NEXRAD)</span>
-            </label>
-            <label class="toggle-item">
-              <input type="checkbox" id="layerLiveSatellite" aria-label="Toggle Real Meteorological Satellite Clouds" />
-              <span class="toggle-slider"></span>
-              <span class="toggle-text"><span class="indicator-dot" style="display:inline-block; vertical-align:middle; margin-right:5px; background-color:#000000;"></span>Live Satellite Clouds (NASA GIBS)</span>
-            </label>
-            <label class="toggle-item">
-              <input type="checkbox" id="layerNasaHd" aria-label="Toggle NASA HD TrueColor Satellite Imagery" />
-              <span class="toggle-slider"></span>
-              <span class="toggle-text"><span class="indicator-dot" style="display:inline-block; vertical-align:middle; margin-right:5px; background-color:#10b981;"></span>HD TrueColor Sat (Terra/Aqua)</span>
-            </label>
-            <label class="toggle-item">
-              <input type="checkbox" id="layerInfrared" aria-label="Toggle Infrared Storm Temperature (GOES/Himawari)" />
-              <span class="toggle-slider"></span>
-              <span class="toggle-text"><span class="indicator-dot" style="display:inline-block; vertical-align:middle; margin-right:5px; background-color:#8b5cf6;"></span>Infrared Storm Temp (GOES/Himawari)</span>
-            </label>
-            <label class="toggle-item">
-              <input type="checkbox" id="layerFirms" aria-label="Toggle NASA FIRMS Active Thermal Hotspots & Wildfires" />
-              <span class="toggle-slider"></span>
-              <span class="toggle-text"><span class="indicator-dot" style="display:inline-block; vertical-align:middle; margin-right:5px; background-color:#f59e0b;"></span>Thermal Hotspots (NASA FIRMS)</span>
-            </label>
-            <label class="toggle-item">
+          <div class="layer-toggle-grid">
+            <label class="tactical-chip" title="Atmospheric Wind Particles (GFS)">
               <input type="checkbox" id="layerWindStreamlines" checked aria-label="Toggle Atmospheric Wind Particle Streamlines" />
-              <span class="toggle-slider"></span>
-              <span class="toggle-text"><span class="indicator-dot blinking" style="display:inline-block; vertical-align:middle; margin-right:5px; background-color:#0284c7;"></span>Atmospheric Wind Particles (GFS)</span>
+              <span class="chip-inner"><i class="ti ti-wind"></i><span>Wind Stream</span></span>
             </label>
-            <label class="toggle-item">
+            <label class="tactical-chip" title="Cyclone Path & Eye Radius">
               <input type="checkbox" id="layerTrack" checked aria-label="Toggle Cyclone Path Layer" />
-              <span class="toggle-slider"></span>
-              <span class="toggle-text">Cyclone Path &amp; Eye Radius</span>
+              <span class="chip-inner"><i class="ti ti-route"></i><span>Track &amp; Eye</span></span>
             </label>
-            <label class="toggle-item">
+            <label class="tactical-chip" title="Wind Swath Cone of Uncertainty">
               <input type="checkbox" id="layerCone" checked aria-label="Toggle Wind Cone Layer" />
-              <span class="toggle-slider"></span>
-              <span class="toggle-text">Wind Swath Cone of Uncertainty</span>
+              <span class="chip-inner"><i class="ti ti-cone"></i><span>Wind Cone</span></span>
             </label>
-            <label class="toggle-item">
+            <label class="tactical-chip" title="Surge Inundation Polygon">
               <input type="checkbox" id="layerSurge" checked aria-label="Toggle Storm Surge Polygon" />
-              <span class="toggle-slider"></span>
-              <span class="toggle-text">Surge Inundation Polygon</span>
+              <span class="chip-inner"><i class="ti ti-wave-sine"></i><span>Surge Zone</span></span>
             </label>
-            <label class="toggle-item">
+            <label class="tactical-chip" title="Sentinel-1 SAR Floods (GEE)">
               <input type="checkbox" id="layerGee" checked aria-label="Toggle Sentinel-1 SAR Raster" />
-              <span class="toggle-slider"></span>
-              <span class="toggle-text">Sentinel-1 SAR Floods (GEE)</span>
+              <span class="chip-inner"><i class="ti ti-satellite"></i><span>SAR Flood</span></span>
             </label>
-            <label class="toggle-item">
+            <label class="tactical-chip" title="Critical Infrastructure Network">
               <input type="checkbox" id="layerInfrastructure" checked aria-label="Toggle Critical Infrastructure Network" />
-              <span class="toggle-slider"></span>
-              <span class="toggle-text">Critical Infrastructure Network</span>
+              <span class="chip-inner"><i class="ti ti-building-factory"></i><span>Infra Network</span></span>
             </label>
-          </div>
-        </div>
-
-        <!-- Infrastructure Status Snapshot (Collapsible Micro-Data Accordion) -->
-        <div class="panel-section infrastructure-mini-list" id="assetMiniCard">
-          <div class="section-header-row">
-            <h3 class="section-heading"><i class="ti ti-shield-alert"></i> <span class="swiss-num">03.</span> ASSET EXPOSURE</h3>
-            <div class="header-tools">
-              <span class="threat-counter" id="threatCountBadge">4 At Risk</span>
-              <button id="btnToggleAssetAccordion" class="btn-section-toggle" title="Toggle Asset Micro-List" aria-label="Toggle Asset Micro-List">
-                <i class="ti ti-chevron-up"></i>
-              </button>
-            </div>
-          </div>
-          <div id="assetSummaryList" class="asset-scroll-list" role="list">
-            <!-- Dynamically populated -->
+            <label class="tactical-chip" title="Live Doppler Radar (NEXRAD)">
+              <input type="checkbox" id="layerLiveRadar" aria-label="Toggle Live Doppler Weather Radar" />
+              <span class="chip-inner"><i class="ti ti-radar"></i><span>Live Radar</span></span>
+            </label>
+            <label class="tactical-chip" title="Live Satellite Clouds (NASA GIBS)">
+              <input type="checkbox" id="layerLiveSatellite" aria-label="Toggle Real Meteorological Satellite Clouds" />
+              <span class="chip-inner"><i class="ti ti-cloud"></i><span>Sat Clouds</span></span>
+            </label>
+            <label class="tactical-chip" title="HD TrueColor Sat (Terra/Aqua)">
+              <input type="checkbox" id="layerNasaHd" aria-label="Toggle NASA HD TrueColor Satellite Imagery" />
+              <span class="chip-inner"><i class="ti ti-world"></i><span>HD TrueColor</span></span>
+            </label>
+            <label class="tactical-chip" title="Infrared Storm Temp (GOES/Himawari)">
+              <input type="checkbox" id="layerInfrared" aria-label="Toggle Infrared Storm Temperature (GOES/Himawari)" />
+              <span class="chip-inner"><i class="ti ti-temperature"></i><span>Clean IR</span></span>
+            </label>
+            <label class="tactical-chip full-width" title="Thermal Hotspots (NASA FIRMS)">
+              <input type="checkbox" id="layerFirms" aria-label="Toggle NASA FIRMS Active Thermal Hotspots & Wildfires" />
+              <span class="chip-inner"><i class="ti ti-flame"></i><span>Active Hotspots &amp; Fires</span></span>
+            </label>
           </div>
         </div>
       </aside>
@@ -339,25 +301,25 @@
 
         <!-- Floating Sidebar Restore Pills when collapsed -->
         <button id="btnExpandLeft" class="floating-panel-restore left-restore hidden" title="Restore Telemetry HUD">
-          <i class="ti ti-chevron-right"></i> <span>Telemetry HUD</span>
+          <i class="ti ti-chevron-right"></i>
         </button>
         <button id="btnExpandRight" class="floating-panel-restore right-restore hidden" title="Restore AI & Advisory">
-          <span>AI &amp; Advisory</span> <i class="ti ti-chevron-left"></i>
+          <i class="ti ti-chevron-left"></i>
         </button>
 
         <!-- Floating Basemap Selector on Map -->
         <div class="map-basemap-dock" role="group" aria-label="Select Map Basemap Layer">
           <button class="btn-basemap-option active" data-basemap="dark" title="CartoDB Dark Matter High-Contrast Basemap">
-            <i class="ti ti-moon"></i> <span>Dark</span>
+            <i class="ti ti-moon"></i>
           </button>
           <button class="btn-basemap-option" data-basemap="light" title="CartoDB Positron Swiss Clean Light Basemap">
-            <i class="ti ti-sun"></i> <span>Light</span>
+            <i class="ti ti-sun"></i>
           </button>
           <button class="btn-basemap-option" data-basemap="satellite" title="Esri Real High-Resolution Satellite Imagery">
-            <i class="ti ti-satellite"></i> <span>Satellite</span>
+            <i class="ti ti-satellite"></i>
           </button>
           <button class="btn-basemap-option" data-basemap="topo" title="Esri World Topographic Map">
-            <i class="ti ti-mountain"></i> <span>Topo</span>
+            <i class="ti ti-mountain"></i>
           </button>
         </div>
 
@@ -373,23 +335,21 @@
           <div class="legend-row"><span class="legend-color-dot dot-safe" aria-hidden="true"></span> Fortified / Operational</div>
         </div>
 
-        <!-- Floating Bottom Time Scrubber -->
+        <!-- Floating Bottom Time Scrubber: Sleek Unified Single Bar -->
         <div class="time-scrubber-dock" role="toolbar" aria-label="Simulation Time Scrubber">
-          <div class="scrubber-header">
-            <div class="time-readout">
-              <span class="label"><span class="swiss-num">04.</span> TIMELINE:</span>
-              <span id="activeTimeStepLabel" class="active-step-badge">T-24h (24h Before Landfall)</span>
-            </div>
-            <div class="playback-controls">
-              <button id="btnPlayPause" class="btn-play" aria-label="Toggle Auto-Simulation Playback">
-                <span id="playIcon" aria-hidden="true"><i class="ti ti-player-play"></i></span> <span id="playText">Simulate</span>
-              </button>
+          <div class="timeline-single-bar">
+            <button id="btnPlayPause" class="btn-play-transparent" aria-label="Toggle Auto-Simulation Playback" title="Play / Pause Simulation">
+              <span id="playIcon" aria-hidden="true"><i class="ti ti-player-play"></i></span>
+            </button>
+            <div class="timeline-slider-track">
+              <input type="range" id="timeSlider" min="0" max="4" step="1" value="2" class="timeline-slider" aria-label="Cyclone timeline progression slider" />
             </div>
           </div>
-
-          <!-- Time Slider Steps -->
-          <div class="timeline-track-container">
-            <input type="range" id="timeSlider" min="0" max="4" step="1" value="2" class="timeline-slider" aria-label="Cyclone timeline progression slider" />
+          <div class="timeline-sub-bar">
+            <div class="timeline-label-group">
+              <span class="timeline-prefix"><span class="swiss-num">03.</span> TIMELINE:</span>
+              <span id="activeTimeStepLabel" class="active-step-badge">T-24h (24h Before Landfall)</span>
+            </div>
             <div class="timeline-markers">
               <span class="marker" data-step="0">T-72h</span>
               <span class="marker" data-step="1">T-48h</span>
@@ -404,23 +364,23 @@
       <!-- Right Panel: Gemini 3.7 Flash & Action Center -->
       <aside class="panel right-panel swiss-grid-pattern" id="rightPanel" aria-label="Gemini Reasoning & Multilingual Dispatch">
         <div class="panel-top-bar right-top-bar">
-          <span class="panel-top-title"><i class="ti ti-brain"></i> <span class="swiss-num">05.</span> SPATIAL INTELLIGENCE</span>
+          <span class="panel-top-title"><i class="ti ti-brain"></i> <span class="swiss-num">04.</span> SPATIAL INTELLIGENCE</span>
           <button id="btnToggleRightPanel" class="btn-panel-toggle" title="Collapse Intel Sidebar" aria-label="Collapse Intel Sidebar">
             <i class="ti ti-chevron-right"></i>
           </button>
         </div>
         
-        <!-- Gemini 3.7 Flash Spatial Reasoning Core -->
+        <!-- NVIDIA Nemotron 3.5 Spatial Reasoning Core -->
         <div class="panel-section gemini-card">
           <div class="gemini-header">
             <div class="gemini-branding">
               <span class="sparkle-icon" aria-hidden="true"><i class="ti ti-sparkles"></i></span>
               <div>
-                <h3 class="gemini-title">Gemini 3.7 Flash</h3>
-                <span class="gemini-sub">Multimodal Spatial Reasoning</span>
+                <h3 class="gemini-title">NVIDIA Nemotron 3.5</h3>
+                <span class="gemini-sub">Lightning Spatial Intelligence</span>
               </div>
             </div>
-            <button id="btnRunGemini" class="btn-gemini-pulse" aria-label="Run Gemini Multimodal Spatial Analysis">
+            <button id="btnRunGemini" class="btn-gemini-pulse" aria-label="Run NVIDIA Nemotron Spatial Analysis">
               <i class="ti ti-scan"></i> <span>Analyze</span>
             </button>
           </div>
@@ -428,10 +388,10 @@
           <div class="gemini-output-container" aria-live="polite">
             <div id="geminiLoader" class="gemini-loading-indicator hidden">
               <div class="scanner-line"></div>
-              <span>Gemini 3.7 Flash synthesizing GEE rasters &amp; topology...</span>
+              <span>NVIDIA Nemotron 3.5 synthesizing GEE rasters &amp; topology...</span>
             </div>
             <div id="geminiContent" class="gemini-markdown-body">
-              <!-- Populated by Gemini -->
+              <!-- Populated by Nemotron -->
             </div>
           </div>
         </div>
@@ -439,7 +399,7 @@
         <!-- Multilingual Early-Warning Advisory Dispatcher -->
         <div class="panel-section advisory-card">
           <div class="advisory-header-row">
-            <h3 class="section-heading"><i class="ti ti-bell-ringing"></i> <span class="swiss-num">06.</span> EARLY-WARNING</h3>
+            <h3 class="section-heading"><i class="ti ti-bell-ringing"></i> <span class="swiss-num">05.</span> EARLY-WARNING</h3>
             <div class="lang-selector-group">
               <label for="advisoryLangSelect" class="sr-only">Advisory Language</label>
               <select id="advisoryLangSelect" class="lang-dropdown" aria-label="Select Advisory Broadcast Language">
@@ -457,8 +417,8 @@
             
             <!-- Audio Playback Controller -->
             <div class="audio-control-bar">
-              <button id="btnPlayAudio" class="btn-audio-speak" aria-label="Play spoken audio warning alert">
-                <span id="audioIcon" aria-hidden="true"><i class="ti ti-volume"></i></span> <span id="audioText">Voice Warning</span>
+              <button id="btnPlayAudio" class="btn-audio-speak" aria-label="Play spoken audio warning alert" title="Voice Warning" style="width: 32px; height: 32px; padding: 0; display: flex; align-items: center; justify-content: center; gap: 0;">
+                <span id="audioIcon" aria-hidden="true"><i class="ti ti-volume"></i></span>
               </button>
               <div id="audioWaveform" class="audio-wave-anim hidden" aria-hidden="true">
                 <span></span><span></span><span></span><span></span><span></span>
@@ -699,6 +659,66 @@
         </div>
         <div class="modal-footer">
           <button id="btnCloseReportModalFooter" class="btn-ghost">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal for Tactical Satellite Offline & Signal-Lost Recovery -->
+    <div id="offlineOverlay" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="offlineTitle">
+      <div class="modal-card modal-card-offline">
+        <div class="modal-header offline-modal-header">
+          <div class="offline-badge-group">
+            <span class="offline-pill-tag"><i class="ti ti-antenna-off"></i> SATCOM LINK LOST</span>
+            <span class="offline-clock" id="offlineDuration">BLACKOUT: 00:00:00</span>
+          </div>
+          <button id="btnCloseOfflineModal" class="btn-close" aria-label="Dismiss offline overlay"><i class="ti ti-x"></i></button>
+        </div>
+        <div class="modal-body offline-modal-body">
+          <div class="offline-radar-centerpiece">
+            <div class="offline-canvas-wrap">
+              <canvas id="offlineRadarCanvas" width="240" height="240" class="offline-radar-canvas"></canvas>
+              <div class="offline-sweep-label" id="offlineSweepLabel">SCANNING SATELLITE CONSTELLATIONS...</div>
+            </div>
+          </div>
+          
+          <div class="offline-info-content">
+            <h3 id="offlineTitle" class="offline-heading">TELEMETRY UPLINK DISRUPTED</h3>
+            <p class="offline-desc">
+              Network interface offline. Satellite carrier severed. 
+              Aegis has automatically engaged <strong>Autonomous Client-Side Runtime</strong>:
+            </p>
+
+            <div class="offline-telemetry-grid">
+              <div class="offline-cell">
+                <span class="cell-label">UPLINK CARRIER</span>
+                <span class="cell-val text-danger" id="offlineCarrierVal">LOST (-92 dBm)</span>
+              </div>
+              <div class="offline-cell">
+                <span class="cell-label">LOCAL HYDRO-ENGINE</span>
+                <span class="cell-val text-success">100% OPERATIONAL</span>
+              </div>
+              <div class="offline-cell">
+                <span class="cell-label">PRE-CACHED BASINS</span>
+                <span class="cell-val">6 BRICS REGIONS</span>
+              </div>
+              <div class="offline-cell">
+                <span class="cell-label">OFFLINE SPATIAL AI</span>
+                <span class="cell-val text-accent">STANDBY READY</span>
+              </div>
+            </div>
+
+            <p class="offline-subtext">
+              <i class="ti ti-info-circle"></i> You can safely continue manipulating storm time steps, surge calculations, CAD incident triage, and executive reports without an internet connection.
+            </p>
+          </div>
+        </div>
+        <div class="modal-footer offline-modal-footer">
+          <button id="btnDismissOffline" class="btn-accent">
+            <i class="ti ti-shield-check"></i> Continue in Offline Mode
+          </button>
+          <button id="btnRetryUplink" class="btn-ghost">
+            <i class="ti ti-refresh"></i> <span id="retryUplinkText">Test Uplink</span>
+          </button>
         </div>
       </div>
     </div>

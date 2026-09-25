@@ -9,12 +9,52 @@
       <stop offset="0%" stop-color="#00f0ff"/>
       <stop offset="100%" stop-color="#ff2a5f"/>
     </linearGradient>
+    <style>
+      @keyframes spinClockwise {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+      @keyframes spinCounter {
+        from { transform: rotate(360deg); }
+        to { transform: rotate(0deg); }
+      }
+      @keyframes pulseAlert {
+        0%, 100% { r: 3.5px; opacity: 1; }
+        50% { r: 4.8px; opacity: 0.8; }
+      }
+      .vortex-arm {
+        transform-origin: 32px 32px;
+        animation: spinClockwise 2.5s linear infinite;
+      }
+      .radar-dash {
+        transform-origin: 32px 32px;
+        animation: spinCounter 7s linear infinite;
+      }
+      .eye-pulse {
+        animation: pulseAlert 1.2s ease-in-out infinite;
+      }
+    </style>
   </defs>
   <rect width="64" height="64" rx="14" fill="#070a12"/>
-  <circle cx="32" cy="32" r="28" fill="none" stroke="#00f0ff" stroke-width="1.5" stroke-dasharray="3 3" opacity="0.4"/>
+  
+  <!-- Outer rotating dashed radar ring -->
+  <g class="radar-dash">
+    <circle cx="32" cy="32" r="28" fill="none" stroke="#00f0ff" stroke-width="1.5" stroke-dasharray="3 3" opacity="0.45"/>
+    <animateTransform attributeName="transform" type="rotate" from="360 32 32" to="0 32 32" dur="7s" repeatCount="indefinite"/>
+  </g>
+  
+  <!-- Static inner radar rings -->
   <circle cx="32" cy="32" r="20" fill="none" stroke="#0077ff" stroke-width="1.5" opacity="0.6"/>
   <circle cx="32" cy="32" r="12" fill="url(#radarGlow)" opacity="0.4"/>
-  <!-- Cyclone spiral arms -->
-  <path d="M32 14 C44 14, 50 24, 46 34 C43 42, 34 46, 26 44 C20 42, 16 34, 18 28 C20 23, 27 22, 30 25 C33 28, 32 32, 29 33 C27 34, 25 32, 26 30" fill="none" stroke="url(#vortexGrad)" stroke-width="3" stroke-linecap="round"/>
-  <circle cx="32" cy="32" r="3.5" fill="#ff2a5f"/>
+  
+  <!-- Rotating Cyclone spiral arms -->
+  <g class="vortex-arm">
+    <path d="M32 14 C44 14, 50 24, 46 34 C43 42, 34 46, 26 44 C20 42, 16 34, 18 28 C20 23, 27 22, 30 25 C33 28, 32 32, 29 33 C27 34, 25 32, 26 30" fill="none" stroke="url(#vortexGrad)" stroke-width="3" stroke-linecap="round"/>
+    <animateTransform attributeName="transform" type="rotate" from="0 32 32" to="360 32 32" dur="2.5s" repeatCount="indefinite"/>
+  </g>
+  
+  <!-- Pulsing eye center -->
+  <circle class="eye-pulse" cx="32" cy="32" r="3.5" fill="#ff2a5f">
+    <animate attributeName="r" values="3.5;4.8;3.5" dur="1.2s" repeatCount="indefinite"/>
+  </circle>
 </svg>

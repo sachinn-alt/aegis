@@ -5,3 +5,10 @@ dist/
 graphify-out/cache/last_query_stamp
 
 .vercel
+.env
+.env.local
+.env.*.local
+*.patch
+*.diff
+stash_index.html
+

@@ -3,27 +3,55 @@
 
 export class GeminiReasoningEngine {
   constructor(apiKey = null) {
-    this.apiKey = apiKey || localStorage.getItem("aegis_gemini_key") || localStorage.getItem("resilicoast_gemini_key") || "";
+    const envOrKey = typeof import.meta !== "undefined" && import.meta.env ? import.meta.env.VITE_OPENROUTER_API_KEY : "";
+    const envOrModel = typeof import.meta !== "undefined" && import.meta.env ? import.meta.env.VITE_OPENROUTER_MODEL : "";
+    const envGemini = typeof import.meta !== "undefined" && import.meta.env ? import.meta.env.VITE_GEMINI_API_KEY : "";
+    const winOrKey = typeof window !== "undefined" && window.OPENROUTER_API_KEY ? window.OPENROUTER_API_KEY : "";
+    const winGemini = typeof window !== "undefined" && window.GEMINI_API_KEY ? window.GEMINI_API_KEY : "";
+
+    this.openRouterKey = envOrKey || winOrKey || localStorage.getItem("aegis_openrouter_key") || "";
+    this.openRouterModel = envOrModel || localStorage.getItem("aegis_openrouter_model") || "nvidia/nemotron-3.5-lightning:free";
+    this.apiKey = apiKey || envGemini || winGemini || localStorage.getItem("aegis_gemini_key") || "";
   }
 
   setApiKey(key) {
-    this.apiKey = key;
-    if (key) {
-      localStorage.setItem("aegis_gemini_key", key);
+    if (key.startsWith("sk-or-")) {
+      this.openRouterKey = key;
+      localStorage.setItem("aegis_openrouter_key", key);
     } else {
-      localStorage.removeItem("aegis_gemini_key");
-      localStorage.removeItem("resilicoast_gemini_key");
+      this.apiKey = key;
+      if (key) {
+        localStorage.setItem("aegis_gemini_key", key);
+      } else {
+        localStorage.removeItem("aegis_gemini_key");
+        localStorage.removeItem("resilicoast_gemini_key");
+      }
     }
   }
 
   async runMultimodalAnalysis(basinData, currentTimeStep, exposedAssets, satelliteActive = true) {
     const prompt = this.buildPrompt(basinData, currentTimeStep, exposedAssets, satelliteActive);
 
+    // Primary: OpenRouter NVIDIA Nemotron 3.5
+    if (this.openRouterKey && this.openRouterKey.startsWith("sk-or-")) {
+      try {
+        const response = await this.callOpenRouterApi(prompt);
+        return {
+          source: `NVIDIA Nemotron 3.5 (${this.openRouterModel})`,
+          timestamp: new Date().toLocaleTimeString(),
+          analysis: response
+        };
+      } catch (err) {
+        console.warn("OpenRouter API call failed, attempting fallback:", err);
+      }
+    }
+
+    // Secondary: Gemini API
     if (this.apiKey && this.apiKey.trim().length > 10) {
       try {
         const response = await this.callGeminiApi(prompt);
         return {
-          source: "Gemini 3.7 Flash (Live Cloud API)",
+          source: "Gemini 3.8 Flash (Live Cloud API)",
           timestamp: new Date().toLocaleTimeString(),
           analysis: response
         };
@@ -34,14 +62,14 @@ export class GeminiReasoningEngine {
 
     // High-fidelity domain reasoning fallback
     return {
-      source: "Gemini 3.7 Flash Spatial Engine (Simulated)",
+      source: "Nemotron Spatial Engine (Simulated)",
       timestamp: new Date().toLocaleTimeString(),
       analysis: this.generateSimulatedReasoning(basinData, currentTimeStep, exposedAssets)
     };
   }
 
   buildPrompt(basin, step, exposedAssets, satelliteActive) {
-    return `You are Gemini 3.7 Flash acting as the Chief Disaster Risk & Geospatial AI Officer for coastal authorities in ${basin.country} (${basin.basinName}).
+    return `You are NVIDIA Nemotron 3.5 acting as the Chief Disaster Risk & Geospatial AI Officer for coastal authorities in ${basin.country} (${basin.basinName}).
 Active Event: ${basin.stormName} (${basin.category})
 Time Horizon: ${step.label} (${step.step})
 Current Storm Dynamics:
@@ -61,8 +89,41 @@ Task: Provide a rigorous 3-part spatial vulnerability synthesis:
 3. PARAMETRIC INSURANCE & EMERGENCY LIQUIDITY TRIGGER: Automated damage assessment estimation for rapid pre-allocated disaster relief release.`;
   }
 
+  async callOpenRouterApi(promptText) {
+    const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${this.openRouterKey}`,
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://aegis.brics-resilience.org",
+        "X-Title": "Aegis Disaster Resilience"
+      },
+      body: JSON.stringify({
+        model: this.openRouterModel,
+        messages: [
+          {
+            role: "system",
+            content: "You are NVIDIA Nemotron 3.5 serving as the Lead Disaster Resilience AI Officer for BRICS coastal early-warning command. Provide structured spatial intelligence analysis."
+          },
+          {
+            role: "user",
+            content: promptText
+          }
+        ],
+        temperature: 0.2
+      })
+    });
+
+    if (!res.ok) {
+      throw new Error(`OpenRouter API error: ${res.status} ${res.statusText}`);
+    }
+
+    const data = await res.json();
+    return data.choices?.[0]?.message?.content || "";
+  }
+
   async callGeminiApi(promptText) {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${this.apiKey}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${this.apiKey}`;
     const payload = {
       contents: [
         {

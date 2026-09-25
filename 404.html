@@ -3,106 +3,696 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>404 — Sector Out of Telemetry Range | Aegis</title>
-  <meta name="description" content="The requested disaster intelligence page or coastal coordinates could not be located on the Aegis BRICS network." />
+  <title>404 — Sector Out of Telemetry Range | Aegis National EOC</title>
+  <meta name="description" content="Coastal sector out of telemetry range or network offline. Aegis autonomous disaster intelligence and satellite recovery HUD." />
   <link rel="canonical" href="https://aegis.brics-resilience.org/404.html" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   
   <!-- Fonts & Tabler Icons -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css" />
   
   <style>
     :root {
-      --bg-primary: #070a12;
-      --bg-surface: #0e1424;
+      --bg-deep: #070a12;
+      --bg-panel: #0d121f;
+      --bg-card: #13192a;
       --accent-cyan: #00f0ff;
+      --accent-blue: #0077ff;
       --status-critical: #ff2a5f;
-      --text-primary: #f8fafc;
-      --text-secondary: #94a3b8;
-      --text-muted: #64748b;
+      --status-warning: #ffb800;
+      --status-safe: #00e676;
+      --text-white: #ffffff;
+      --text-muted: #8492a6;
+      --border-tactical: #1e293b;
+      --font-grotesk: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
     }
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
+
     body {
-      font-family: 'Outfit', sans-serif;
-      background: var(--bg-primary);
-      color: var(--text-primary);
+      font-family: var(--font-grotesk);
+      background-color: var(--bg-deep);
+      color: var(--text-white);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      text-align: center;
       padding: 24px;
-      background-image: radial-gradient(circle at 50% 50%, rgba(255, 42, 95, 0.08) 0%, transparent 60%);
+      overflow-x: hidden;
+      position: relative;
     }
-    .breadcrumbs {
-      font-family: 'JetBrains Mono', monospace;
+
+    /* Background Tactical Grid */
+    body::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: 
+        linear-gradient(rgba(0, 240, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 240, 255, 0.03) 1px, transparent 1px);
+      background-size: 32px 32px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Radial Vignette */
+    body::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 50% 50%, transparent 20%, rgba(7, 10, 18, 0.85) 85%);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .telemetry-container {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      max-width: 880px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    /* Top Breadcrumbs & Sys ID */
+    .telemetry-header-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      margin-bottom: 24px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border-tactical);
+      font-family: var(--font-mono);
       font-size: 0.72rem;
       color: var(--text-muted);
-      margin-bottom: 24px;
+      letter-spacing: 0.05em;
     }
-    .breadcrumbs a { color: var(--accent-cyan); text-decoration: none; }
-    .breadcrumbs a:hover { text-decoration: underline; }
-    .error-code {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 7rem;
-      font-weight: 800;
-      color: var(--status-critical);
-      text-shadow: 0 0 30px rgba(255, 42, 95, 0.4);
-      line-height: 1;
-      margin-bottom: 12px;
+
+    .breadcrumbs a {
+      color: var(--accent-cyan);
+      text-decoration: none;
+      transition: color 0.15s;
     }
-    h1 {
-      font-size: 1.8rem;
+    .breadcrumbs a:hover {
+      text-decoration: underline;
+    }
+
+    .network-status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 4px 10px;
+      border-radius: 20px;
       font-weight: 700;
-      letter-spacing: 1px;
-      margin-bottom: 16px;
+      font-size: 0.68rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      background: rgba(255, 42, 95, 0.12);
+      border: 1px solid var(--status-critical);
+      color: var(--status-critical);
+      transition: all 0.3s ease;
+    }
+
+    .network-status-pill.online {
+      background: rgba(0, 230, 118, 0.12);
+      border-color: var(--status-safe);
+      color: var(--status-safe);
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: currentColor;
+      box-shadow: 0 0 8px currentColor;
+      animation: pulseDot 1.4s infinite ease-in-out;
+    }
+
+    @keyframes pulseDot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.8); }
+    }
+
+    /* Interactive Radar Stage */
+    .radar-stage {
+      position: relative;
+      width: 320px;
+      height: 320px;
+      margin: 10px 0 20px 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .radar-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(0, 240, 255, 0.04) 0%, rgba(7, 10, 18, 0.6) 80%);
+      box-shadow: 
+        0 0 40px rgba(0, 240, 255, 0.15),
+        inset 0 0 30px rgba(0, 0, 0, 0.8);
+      border: 2px solid rgba(0, 240, 255, 0.35);
+    }
+
+    /* Center 404 Overlay inside Radar */
+    .radar-center-readout {
+      position: relative;
+      z-index: 3;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
+
+    .error-code {
+      font-family: var(--font-mono);
+      font-size: 4.8rem;
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: -2px;
+      color: #ffffff;
+      text-shadow: 
+        0 0 20px rgba(255, 42, 95, 0.8),
+        0 0 40px rgba(255, 42, 95, 0.4);
+      position: relative;
+    }
+
+    .error-code::before {
+      content: '404';
+      position: absolute;
+      left: 2px;
+      top: 0;
+      color: var(--accent-cyan);
+      opacity: 0.7;
+      clip-path: polygon(0 0, 100% 0, 100% 45%, 0 45%);
+      animation: glitchTop 3s infinite linear alternate-reverse;
+    }
+
+    .error-code::after {
+      content: '404';
+      position: absolute;
+      left: -2px;
+      top: 0;
+      color: var(--status-critical);
+      opacity: 0.7;
+      clip-path: polygon(0 55%, 100% 55%, 100% 100%, 0 100%);
+      animation: glitchBottom 2.5s infinite linear alternate-reverse;
+    }
+
+    @keyframes glitchTop {
+      0%, 90% { transform: translate(0); }
+      92% { transform: translate(-3px, -1px); }
+      94% { transform: translate(2px, 1px); }
+      96% { transform: translate(-2px, 0); }
+      100% { transform: translate(0); }
+    }
+
+    @keyframes glitchBottom {
+      0%, 88% { transform: translate(0); }
+      90% { transform: translate(3px, 1px); }
+      93% { transform: translate(-2px, -1px); }
+      97% { transform: translate(1px, 0); }
+      100% { transform: translate(0); }
+    }
+
+    .radar-tag {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: var(--accent-cyan);
+      background: rgba(0, 0, 0, 0.75);
+      border: 1px solid rgba(0, 240, 255, 0.4);
+      padding: 3px 8px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-top: 4px;
+      border-radius: 2px;
+    }
+
+    /* Headings & Descriptions */
+    h1 {
+      font-size: 1.6rem;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      margin-bottom: 10px;
+      text-transform: uppercase;
       color: #ffffff;
     }
-    p {
-      color: var(--text-secondary);
-      max-width: 520px;
-      line-height: 1.6;
-      margin-bottom: 32px;
+
+    p.lead-text {
+      color: var(--text-muted);
+      max-width: 600px;
       font-size: 0.95rem;
+      line-height: 1.6;
+      margin-bottom: 24px;
     }
+
+    /* Live Telemetry Diagnostic Grid */
+    .telemetry-card {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-tactical);
+      border-radius: 6px;
+      padding: 16px 20px;
+      width: 100%;
+      max-width: 720px;
+      margin-bottom: 28px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      text-align: left;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    }
+
+    .tel-item {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .tel-label {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .tel-val {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #ffffff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .text-danger { color: var(--status-critical) !important; }
+    .text-success { color: var(--status-safe) !important; }
+    .text-cyan { color: var(--accent-cyan) !important; }
+
+    /* Action Buttons */
+    .actions-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
     .action-btn {
       display: inline-flex;
       align-items: center;
-      gap: 10px;
-      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      gap: 8px;
+      background: linear-gradient(135deg, #0077ff 0%, #004ecc 100%);
       border: 1px solid var(--accent-cyan);
       color: #ffffff;
       padding: 12px 24px;
-      border-radius: 6px;
+      border-radius: 4px;
       text-decoration: none;
-      font-weight: 600;
-      font-size: 0.9rem;
-      box-shadow: 0 0 16px rgba(0, 240, 255, 0.25);
-      transition: all 0.2s;
+      font-weight: 700;
+      font-size: 0.86rem;
+      letter-spacing: 0.03em;
+      box-shadow: 0 0 20px rgba(0, 119, 255, 0.35);
+      transition: all 0.2s ease;
+      cursor: pointer;
     }
+
     .action-btn:hover {
-      box-shadow: 0 0 24px rgba(0, 240, 255, 0.5);
+      box-shadow: 0 0 28px rgba(0, 240, 255, 0.6);
       transform: translateY(-2px);
+    }
+
+    .action-btn-ghost {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-tactical);
+      color: #ffffff;
+      padding: 12px 20px;
+      border-radius: 4px;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 0.86rem;
+      letter-spacing: 0.03em;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    .action-btn-ghost:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: var(--accent-cyan);
+      color: var(--accent-cyan);
+      transform: translateY(-2px);
+    }
+
+    /* Live Satellite Azimuth Live Ticker */
+    .azimuth-bar {
+      margin-top: 24px;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .azimuth-bar span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    @media (max-width: 640px) {
+      .telemetry-card {
+        grid-template-columns: 1fr 1fr;
+      }
+      .radar-stage {
+        width: 270px;
+        height: 270px;
+      }
+      .error-code {
+        font-size: 4rem;
+      }
+      h1 {
+        font-size: 1.3rem;
+      }
     }
   </style>
 </head>
 <body>
-  <!-- Breadcrumb Navigation -->
-  <nav class="breadcrumbs" aria-label="Breadcrumb">
-    <a href="/">National EOC</a> &gt; <span>Telemetry Range</span> &gt; <span>404 Lost Signal</span>
-  </nav>
 
-  <div class="error-code">404</div>
-  <h1>COASTAL SECTOR OUT OF TELEMETRY RANGE</h1>
-  <p>
-    The requested disaster simulation dataset, radar channel, or coordinate boundary could not be acquired by the satellite network.
-  </p>
-  <a href="/" class="action-btn">
-    <i class="ti ti-tornado"></i> Return to Emergency Operations Center
-  </a>
+  <div class="telemetry-container">
+    <!-- Top System Breadcrumbs -->
+    <header class="telemetry-header-bar">
+      <nav class="breadcrumbs" aria-label="Breadcrumb">
+        <a href="/"><i class="ti ti-tornado"></i> NATIONAL EOC</a> &gt; <span>TELEMETRY RANGE</span> &gt; <span style="color:#ffffff;">404 SECTOR DROP</span>
+      </nav>
+
+      <div class="network-status-pill" id="netStatusPill">
+        <span class="status-dot"></span>
+        <span id="netStatusText">CHECKING UPLINK...</span>
+      </div>
+    </header>
+
+    <!-- Tactical Radar Sweep Animation Display -->
+    <div class="radar-stage">
+      <canvas id="radarCanvas" width="320" height="320" class="radar-canvas" aria-label="Animated tactical radar scan"></canvas>
+      <div class="radar-center-readout">
+        <div class="error-code">404</div>
+        <div class="radar-tag" id="radarSubTag">SIGNAL LOST // ORBIT SCAN</div>
+      </div>
+    </div>
+
+    <!-- Main Heading & Briefing -->
+    <h1 id="pageHeading">COASTAL SECTOR OUT OF TELEMETRY RANGE</h1>
+    <p class="lead-text" id="pageLead">
+      The requested disaster coordinate vector, radar channel, or corridor simulation could not be located on the active BRICS network.
+      If your command vehicle is currently experiencing satellite communications loss, local autonomous EOC mode remains fully available.
+    </p>
+
+    <!-- Live Telemetry Diagnostic Snapshot -->
+    <div class="telemetry-card">
+      <div class="tel-item">
+        <span class="tel-label">CARRIER LINK</span>
+        <span class="tel-val text-danger" id="telCarrier">SEVERED (-94 dBm)</span>
+      </div>
+      <div class="tel-item">
+        <span class="tel-label">AZIMUTH / ELEV</span>
+        <span class="tel-val text-cyan" id="telAzimuth">142.4° / +28.6°</span>
+      </div>
+      <div class="tel-item">
+        <span class="tel-label">LOCAL RUNTIME</span>
+        <span class="tel-val text-success">100% OPERATIONAL</span>
+      </div>
+      <div class="tel-item">
+        <span class="tel-label">CACHED CORRIDORS</span>
+        <span class="tel-val">6 PRE-LOADED</span>
+      </div>
+    </div>
+
+    <!-- Interactive Tactical Actions -->
+    <div class="actions-row">
+      <a href="/" class="action-btn" id="btnReturnEoc">
+        <i class="ti ti-layout-dashboard"></i> Return to National EOC
+      </a>
+      <button class="action-btn-ghost" id="btnTestUplink" title="Send ping packets to test satellite connectivity">
+        <i class="ti ti-antenna"></i> <span id="btnTestLabel">Test Satcom Uplink</span>
+      </button>
+      <a href="/?offline=1" class="action-btn-ghost" title="Launch emergency disaster simulator in offline mode">
+        <i class="ti ti-shield-bolt"></i> Launch Offline Simulator
+      </a>
+    </div>
+
+    <!-- Live Coordinate Scan Readout -->
+    <div class="azimuth-bar">
+      <span><i class="ti ti-scan"></i> SCAN FREQ: <strong id="scanFreq">1420.405 MHz</strong></span>
+      <span><i class="ti ti-satellite"></i> CONSTELLATION: <strong>INSAT / METEOSAT / GEE</strong></span>
+    </div>
+  </div>
+
+  <script>
+    // Tactical Radar Canvas Sweep Animation
+    const canvas = document.getElementById("radarCanvas");
+    const ctx = canvas.getContext("2d");
+    let angle = 0;
+    let sweepSpeed = 0.038;
+    let pingWaveRadius = 0;
+    let isPinging = false;
+    let targets = [
+      { angle: 0.85, dist: 0.65, label: "NORAD-404", pulse: 0 },
+      { angle: 2.35, dist: 0.42, label: "BUOY-DROP", pulse: 0 },
+      { angle: 4.10, dist: 0.78, label: "CYCLONE-EYE", pulse: 0 }
+    ];
+
+    function drawRadar() {
+      const w = canvas.width;
+      const h = canvas.height;
+      const cx = w / 2;
+      const cy = h / 2;
+      const r = w / 2 - 8;
+
+      ctx.clearRect(0, 0, w, h);
+
+      // 1. Concentric Range Rings
+      const rings = [0.25, 0.5, 0.75, 1.0];
+      rings.forEach(fraction => {
+        ctx.beginPath();
+        ctx.arc(cx, cy, r * fraction, 0, Math.PI * 2);
+        ctx.strokeStyle = fraction === 1.0 ? "rgba(0, 240, 255, 0.5)" : "rgba(0, 240, 255, 0.15)";
+        ctx.lineWidth = fraction === 1.0 ? 1.5 : 1;
+        ctx.stroke();
+
+        // Distance range labels
+        ctx.fillStyle = "rgba(0, 240, 255, 0.5)";
+        ctx.font = "9px 'JetBrains Mono', monospace";
+        ctx.fillText(`${Math.round(fraction * 400)}KM`, cx + 4, cy - r * fraction + 12);
+      });
+
+      // 2. Crosshairs
+      ctx.beginPath();
+      ctx.moveTo(cx - r, cy);
+      ctx.lineTo(cx + r, cy);
+      ctx.moveTo(cx, cy - r);
+      ctx.lineTo(cx, cy + r);
+      ctx.strokeStyle = "rgba(0, 240, 255, 0.18)";
+      ctx.lineWidth = 1;
+      ctx.setLineDash([4, 6]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // 3. Degree ticks along outer circumference
+      for (let i = 0; i < 360; i += 30) {
+        const rad = (i * Math.PI) / 180;
+        const x1 = cx + Math.cos(rad) * (r - 6);
+        const y1 = cy + Math.sin(rad) * (r - 6);
+        const x2 = cx + Math.cos(rad) * r;
+        const y2 = cy + Math.sin(rad) * r;
+
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.strokeStyle = "rgba(0, 240, 255, 0.4)";
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+      }
+
+      // 4. Rotating Sweep Beam with gradient trail
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(angle);
+
+      const sweepSegments = 45;
+      for (let i = 0; i < sweepSegments; i++) {
+        const segAngle = -(i / sweepSegments) * (Math.PI / 3);
+        const alpha = (1 - i / sweepSegments) * 0.28;
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.arc(0, 0, r, segAngle, segAngle + (Math.PI / (3 * sweepSegments)));
+        ctx.fillStyle = navigator.onLine ? `rgba(0, 240, 255, ${alpha})` : `rgba(255, 42, 95, ${alpha})`;
+        ctx.fill();
+      }
+
+      // Primary Sweep Line
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(r, 0);
+      ctx.strokeStyle = navigator.onLine ? "rgba(0, 240, 255, 0.9)" : "rgba(255, 42, 95, 0.9)";
+      ctx.lineWidth = 2;
+      ctx.shadowColor = navigator.onLine ? "#00f0ff" : "#ff2a5f";
+      ctx.shadowBlur = 8;
+      ctx.stroke();
+      ctx.restore();
+
+      // 5. Radar Targets (Lost Beacons)
+      targets.forEach(t => {
+        const tx = cx + Math.cos(t.angle) * (r * t.dist);
+        const ty = cy + Math.sin(t.angle) * (r * t.dist);
+
+        // Check if sweep passes near target
+        const diff = Math.abs(((angle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2) - t.angle);
+        if (diff < 0.12) {
+          t.pulse = 1.0;
+        }
+
+        if (t.pulse > 0.05) {
+          ctx.beginPath();
+          ctx.arc(tx, ty, 6 + (1 - t.pulse) * 16, 0, Math.PI * 2);
+          ctx.strokeStyle = `rgba(255, 42, 95, ${t.pulse * 0.8})`;
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+          t.pulse *= 0.96;
+        }
+
+        ctx.beginPath();
+        ctx.arc(tx, ty, 3.5, 0, Math.PI * 2);
+        ctx.fillStyle = navigator.onLine ? "#00f0ff" : "#ff2a5f";
+        ctx.fill();
+
+        ctx.fillStyle = "rgba(255, 255, 255, 0.75)";
+        ctx.font = "8px 'JetBrains Mono', monospace";
+        ctx.fillText(t.label, tx + 6, ty - 4);
+      });
+
+      // 6. Expanding Ping Wave (Triggered on Uplink Test)
+      if (isPinging) {
+        ctx.beginPath();
+        ctx.arc(cx, cy, pingWaveRadius, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(0, 240, 255, ${Math.max(0, 1 - pingWaveRadius / r)})`;
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+
+        pingWaveRadius += 6;
+        if (pingWaveRadius > r) {
+          pingWaveRadius = 0;
+          isPinging = false;
+        }
+      }
+
+      angle += sweepSpeed;
+      requestAnimationFrame(drawRadar);
+    }
+
+    requestAnimationFrame(drawRadar);
+
+    // Live Network State Management
+    function updateNetworkStatus() {
+      const pill = document.getElementById("netStatusPill");
+      const text = document.getElementById("netStatusText");
+      const carrier = document.getElementById("telCarrier");
+      const subTag = document.getElementById("radarSubTag");
+      const heading = document.getElementById("pageHeading");
+      const lead = document.getElementById("pageLead");
+
+      if (navigator.onLine) {
+        pill.className = "network-status-pill online";
+        text.textContent = "ONLINE // SATELLITE READY";
+        carrier.className = "tel-val text-success";
+        carrier.textContent = "CARRIER ACQUIRED (OK)";
+        subTag.textContent = "404 // SECTOR OUT OF BOUNDS";
+        heading.textContent = "COASTAL SECTOR OUT OF TELEMETRY RANGE";
+        lead.textContent = "The requested coordinate or scenario vector does not exist in the active BRICS database. Return to the main command center or switch to an authorized corridor.";
+      } else {
+        pill.className = "network-status-pill";
+        text.textContent = "OFFLINE // SATCOM DOWN";
+        carrier.className = "tel-val text-danger";
+        carrier.textContent = "CARRIER SEVERED (-98 dBm)";
+        subTag.textContent = "COMMUNICATION BLACKOUT DETECTED";
+        heading.textContent = "COMMUNICATION BLACKOUT // NETWORK OFFLINE";
+        lead.textContent = "Satellite network severed. Aegis has automatically maintained full hydrodynamic simulations, GFS wind particle models, and spatial reasoning in autonomous local memory.";
+      }
+    }
+
+    window.addEventListener("online", () => {
+      updateNetworkStatus();
+      isPinging = true;
+    });
+
+    window.addEventListener("offline", () => {
+      updateNetworkStatus();
+    });
+
+    updateNetworkStatus();
+
+    // Ping Test Button Handshake
+    const btnTest = document.getElementById("btnTestUplink");
+    const label = document.getElementById("btnTestLabel");
+
+    btnTest.addEventListener("click", async () => {
+      isPinging = true;
+      pingWaveRadius = 10;
+      label.textContent = "Ping Handshake...";
+      btnTest.disabled = true;
+
+      const startTime = performance.now();
+      try {
+        const res = await fetch("/favicon.svg?t=" + Date.now(), { cache: "no-store", method: "HEAD" });
+        const latency = Math.round(performance.now() - startTime);
+        if (res.ok) {
+          label.textContent = `Uplink Verified (${latency}ms)`;
+          document.getElementById("telCarrier").className = "tel-val text-success";
+          document.getElementById("telCarrier").textContent = `CARRIER ACTIVE (${latency}ms)`;
+          document.getElementById("netStatusPill").className = "network-status-pill online";
+          document.getElementById("netStatusText").textContent = "ONLINE // SATELLITE READY";
+        } else {
+          throw new Error("HTTP error");
+        }
+      } catch (err) {
+        label.textContent = "Uplink Failed (Offline)";
+        document.getElementById("telCarrier").className = "tel-val text-danger";
+        document.getElementById("telCarrier").textContent = "NO CARRIER DETECTED";
+        document.getElementById("netStatusPill").className = "network-status-pill";
+        document.getElementById("netStatusText").textContent = "OFFLINE // SATCOM DOWN";
+      }
+
+      setTimeout(() => {
+        label.textContent = "Test Satcom Uplink";
+        btnTest.disabled = false;
+      }, 3500);
+    });
+
+    // Azimuth Jitter Simulation for Tactical Realism
+    setInterval(() => {
+      const az = (142.1 + (Math.random() * 0.8)).toFixed(1);
+      const el = (28.4 + (Math.random() * 0.5)).toFixed(1);
+      const elAz = document.getElementById("telAzimuth");
+      if (elAz) elAz.textContent = `${az}° / +${el}°`;
+    }, 2400);
+  </script>
 </body>
 </html>

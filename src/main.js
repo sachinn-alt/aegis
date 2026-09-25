@@ -29,7 +29,7 @@ class AegisApp {
     this.liveAlertTimer = null;
 
     this.activeLayers = {
-      liveRadar: true,
+      liveRadar: false,
       liveSatellite: false,
       nasaHd: false,
       infrared: false,
@@ -42,31 +42,33 @@ class AegisApp {
       infrastructure: true
     };
 
-    // Basemaps (Esri Tactical Dark, Real Satellite Imagery, Topographic)
+    // Basemaps (Esri Tactical Dark, Esri Light, Real Satellite Imagery, Topographic)
     this.currentBasemap = "dark";
     this.basemaps = {
       dark: {
-        base: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
-        subdomains: "abcd",
-        maxZoom: 20,
-        attribution: "&copy; OpenStreetMap &copy; CARTO"
+        base: "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}",
+        labels: "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}",
+        maxNativeZoom: 16,
+        maxZoom: 19,
+        attribution: "Tiles &copy; Esri Dark Gray"
       },
       light: {
-        base: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
-        subdomains: "abcd",
-        maxZoom: 20,
-        attribution: "&copy; OpenStreetMap &copy; CARTO"
+        base: "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}",
+        labels: "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}",
+        maxNativeZoom: 16,
+        maxZoom: 19,
+        attribution: "Tiles &copy; Esri Light Gray"
       },
       satellite: {
         base: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-        labels: "https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png",
-        subdomains: "abcd",
+        labels: "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}",
         maxNativeZoom: 18,
-        maxZoom: 20,
+        maxZoom: 19,
         attribution: "Source: Esri, Maxar, Earthstar Geographics"
       },
       topo: {
         base: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}",
+        labels: null,
         maxNativeZoom: 16,
         maxZoom: 19,
         attribution: "Tiles &copy; Esri Topo"
@@ -134,11 +136,354 @@ class AegisApp {
   }
 
   init() {
+    this.initAnimatedFavicon();
     this.initMap();
     this.bindEvents();
+    this.initOfflineHandling();
     this.initLiveStream();
     this.initUserPreferences();
     this.loadBasin(this.currentBasinKey);
+  }
+
+  /**
+   * Continuous Tab Favicon Animator:
+   * Drives live rotation of the cyclone vortex and radar pulses in the browser tab
+   * across Chromium, Firefox, Edge, and Safari.
+   */
+  initAnimatedFavicon() {
+    let faviconLink = document.querySelector("link[rel*='icon']");
+    if (!faviconLink) {
+      faviconLink = document.createElement("link");
+      faviconLink.rel = "icon";
+      document.head.appendChild(faviconLink);
+    }
+
+    const canvas = document.createElement("canvas");
+    canvas.width = 32;
+    canvas.height = 32;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    let angle = 0;
+    let pulse = 0;
+
+    const renderFaviconFrame = () => {
+      ctx.clearRect(0, 0, 32, 32);
+
+      // Dark tactical container background
+      ctx.fillStyle = "#070a12";
+      ctx.beginPath();
+      if (ctx.roundRect) {
+        ctx.roundRect(0, 0, 32, 32, 7);
+      } else {
+        ctx.rect(0, 0, 32, 32);
+      }
+      ctx.fill();
+
+      // Outer radar dashed rotating ring (counter-clockwise)
+      ctx.save();
+      ctx.translate(16, 16);
+      ctx.rotate(-angle * 0.4);
+      ctx.beginPath();
+      ctx.arc(0, 0, 13.5, 0, Math.PI * 2);
+      ctx.strokeStyle = "rgba(0, 240, 255, 0.45)";
+      ctx.lineWidth = 1.2;
+      ctx.setLineDash([2, 2]);
+      ctx.stroke();
+      ctx.restore();
+
+      // Inner radar ring
+      ctx.beginPath();
+      ctx.arc(16, 16, 9.5, 0, Math.PI * 2);
+      ctx.strokeStyle = "rgba(0, 119, 255, 0.5)";
+      ctx.lineWidth = 1;
+      ctx.setLineDash([]);
+      ctx.stroke();
+
+      // Rotating Cyclone Spiral Arms (Clockwise)
+      ctx.save();
+      ctx.translate(16, 16);
+      ctx.rotate(angle);
+
+      const grad = ctx.createLinearGradient(-10, -10, 10, 10);
+      grad.addColorStop(0, "#00f0ff");
+      grad.addColorStop(0.5, "#0077ff");
+      grad.addColorStop(1, "#ff2a5f");
+
+      ctx.strokeStyle = grad;
+      ctx.lineWidth = 2.4;
+      ctx.lineCap = "round";
+
+      // Outer Spiral Arm
+      ctx.beginPath();
+      ctx.arc(0, 0, 7.5, 0.2, Math.PI * 1.35, false);
+      ctx.stroke();
+
+      // Inner Spiral Arm
+      ctx.beginPath();
+      ctx.arc(0, 0, 4.5, Math.PI, Math.PI * 2.3, false);
+      ctx.stroke();
+      ctx.restore();
+
+      // Pulsing Center Storm Eye
+      const eyeR = 2.2 + Math.sin(pulse) * 0.7;
+      ctx.fillStyle = "#ff2a5f";
+      ctx.beginPath();
+      ctx.arc(16, 16, Math.max(1.4, eyeR), 0, Math.PI * 2);
+      ctx.fill();
+
+      faviconLink.type = "image/png";
+      faviconLink.href = canvas.toDataURL("image/png");
+
+      angle += 0.14;
+      pulse += 0.2;
+    };
+
+    // Keep animation running smoothly at ~12 FPS
+    setInterval(renderFaviconFrame, 80);
+  }
+
+  /**
+   * Tactical Offline Telemetry & Satellite Recovery System
+   * Runs animated radar sweep HUD when network interface drops offline
+   */
+  initOfflineHandling() {
+    this.isOfflineMode = false;
+    this.offlineStartTime = null;
+    this.offlineTimerInterval = null;
+    this.offlineRadarAnimFrame = null;
+    this.offlineRadarAngle = 0;
+
+    // Listen to network transitions
+    window.addEventListener("offline", () => {
+      this.handleNetworkChange(false);
+    });
+
+    window.addEventListener("online", () => {
+      this.handleNetworkChange(true);
+    });
+
+    // Check if initial boot is offline or forced via ?offline=1
+    const urlParams = new URLSearchParams(window.location.search);
+    if (!navigator.onLine || urlParams.get("offline") === "1") {
+      setTimeout(() => this.handleNetworkChange(false), 500);
+    }
+
+    // Modal controls
+    const offlineOverlay = document.getElementById("offlineOverlay");
+    const offlineHeaderPill = document.getElementById("offlineHeaderPill");
+    const btnDismissOffline = document.getElementById("btnDismissOffline");
+    const btnCloseOfflineModal = document.getElementById("btnCloseOfflineModal");
+    const btnRetryUplink = document.getElementById("btnRetryUplink");
+
+    if (offlineHeaderPill) {
+      offlineHeaderPill.addEventListener("click", () => {
+        if (offlineOverlay) {
+          offlineOverlay.classList.remove("hidden");
+          this.startOfflineRadarAnimation();
+        }
+      });
+    }
+
+    if (btnDismissOffline && offlineOverlay) {
+      btnDismissOffline.addEventListener("click", () => {
+        offlineOverlay.classList.add("hidden");
+        this.stopOfflineRadarAnimation();
+      });
+    }
+
+    if (btnCloseOfflineModal && offlineOverlay) {
+      btnCloseOfflineModal.addEventListener("click", () => {
+        offlineOverlay.classList.add("hidden");
+        this.stopOfflineRadarAnimation();
+      });
+    }
+
+    if (btnRetryUplink) {
+      btnRetryUplink.addEventListener("click", async () => {
+        const textSpan = document.getElementById("retryUplinkText");
+        if (textSpan) textSpan.textContent = "Testing Uplink...";
+        btnRetryUplink.disabled = true;
+
+        const startTime = performance.now();
+        try {
+          const res = await fetch("/favicon.svg?t=" + Date.now(), { cache: "no-store", method: "HEAD" });
+          const latency = Math.round(performance.now() - startTime);
+          if (res.ok) {
+            if (textSpan) textSpan.textContent = `Uplink OK (${latency}ms)`;
+            setTimeout(() => this.handleNetworkChange(true), 600);
+          } else {
+            throw new Error("HTTP drop");
+          }
+        } catch (e) {
+          if (textSpan) textSpan.textContent = "Uplink Failed (Offline)";
+          const carrier = document.getElementById("offlineCarrierVal");
+          if (carrier) {
+            carrier.className = "cell-val text-danger";
+            carrier.textContent = "SEVERED (NO CARRIER)";
+          }
+        } finally {
+          setTimeout(() => {
+            if (textSpan) textSpan.textContent = "Test Uplink";
+            btnRetryUplink.disabled = false;
+          }, 2500);
+        }
+      });
+    }
+
+    // Keyboard Shortcut: Ctrl+Shift+O to toggle simulated satcom blackout mode for testing
+    window.addEventListener("keydown", (e) => {
+      if (e.ctrlKey && e.shiftKey && (e.key === "O" || e.key === "o")) {
+        e.preventDefault();
+        this.handleNetworkChange(!this.isOfflineMode);
+      }
+    });
+  }
+
+  handleNetworkChange(isOnline) {
+    this.isOfflineMode = !isOnline;
+    const overlay = document.getElementById("offlineOverlay");
+    const headerPill = document.getElementById("offlineHeaderPill");
+    const sweepLabel = document.getElementById("offlineSweepLabel");
+    const carrierVal = document.getElementById("offlineCarrierVal");
+    const durationEl = document.getElementById("offlineDuration");
+
+    if (!isOnline) {
+      // Transition to OFFLINE mode
+      if (headerPill) headerPill.classList.remove("hidden");
+      if (overlay) overlay.classList.remove("hidden");
+
+      if (carrierVal) {
+        carrierVal.className = "cell-val text-danger";
+        carrierVal.textContent = "SEVERED (-92 dBm)";
+      }
+      if (sweepLabel) sweepLabel.textContent = "SCANNING SATELLITE CONSTELLATIONS...";
+
+      this.offlineStartTime = Date.now();
+      if (this.offlineTimerInterval) clearInterval(this.offlineTimerInterval);
+      this.offlineTimerInterval = setInterval(() => {
+        if (!this.offlineStartTime || !durationEl) return;
+        const elapsedSec = Math.floor((Date.now() - this.offlineStartTime) / 1000);
+        const hrs = String(Math.floor(elapsedSec / 3600)).padStart(2, "0");
+        const mins = String(Math.floor((elapsedSec % 3600) / 60)).padStart(2, "0");
+        const secs = String(elapsedSec % 60).padStart(2, "0");
+        durationEl.textContent = `BLACKOUT: ${hrs}:${mins}:${secs}`;
+      }, 1000);
+
+      this.startOfflineRadarAnimation();
+    } else {
+      // Transition to ONLINE mode
+      if (sweepLabel) sweepLabel.textContent = "SATELLITE TELEMETRY RESTORED // SYNCHRONIZED";
+      if (carrierVal) {
+        carrierVal.className = "cell-val text-success";
+        carrierVal.textContent = "RE-ACQUIRED (ONLINE)";
+      }
+
+      if (this.offlineTimerInterval) {
+        clearInterval(this.offlineTimerInterval);
+        this.offlineTimerInterval = null;
+      }
+
+      // Briefly display acquired status before closing
+      setTimeout(() => {
+        if (overlay) overlay.classList.add("hidden");
+        if (headerPill) headerPill.classList.add("hidden");
+        this.stopOfflineRadarAnimation();
+      }, 1200);
+    }
+  }
+
+  startOfflineRadarAnimation() {
+    const canvas = document.getElementById("offlineRadarCanvas");
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    this.stopOfflineRadarAnimation();
+
+    const w = canvas.width;
+    const h = canvas.height;
+    const cx = w / 2;
+    const cy = h / 2;
+    const r = w / 2 - 8;
+
+    const render = () => {
+      ctx.clearRect(0, 0, w, h);
+
+      // 1. Range rings
+      [0.3, 0.6, 1.0].forEach(frac => {
+        ctx.beginPath();
+        ctx.arc(cx, cy, r * frac, 0, Math.PI * 2);
+        ctx.strokeStyle = frac === 1.0 ? "rgba(0, 240, 255, 0.5)" : "rgba(0, 240, 255, 0.18)";
+        ctx.lineWidth = frac === 1.0 ? 1.5 : 1;
+        ctx.stroke();
+      });
+
+      // 2. Crosshairs
+      ctx.beginPath();
+      ctx.moveTo(cx - r, cy);
+      ctx.lineTo(cx + r, cy);
+      ctx.moveTo(cx, cy - r);
+      ctx.lineTo(cx, cy + r);
+      ctx.strokeStyle = "rgba(0, 240, 255, 0.15)";
+      ctx.setLineDash([3, 4]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // 3. Rotating sweep beam
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(this.offlineRadarAngle);
+
+      const sweepSteps = 30;
+      for (let i = 0; i < sweepSteps; i++) {
+        const segAngle = -(i / sweepSteps) * (Math.PI / 3);
+        const alpha = (1 - i / sweepSteps) * 0.32;
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.arc(0, 0, r, segAngle, segAngle + (Math.PI / (3 * sweepSteps)));
+        ctx.fillStyle = this.isOfflineMode ? `rgba(255, 48, 0, ${alpha})` : `rgba(0, 240, 255, ${alpha})`;
+        ctx.fill();
+      }
+
+      // Sweep arm
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(r, 0);
+      ctx.strokeStyle = this.isOfflineMode ? "#FF3000" : "#00f0ff";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.restore();
+
+      // 4. Lost Satellite Blip
+      const blipX = cx + Math.cos(1.2) * (r * 0.62);
+      const blipY = cy + Math.sin(1.2) * (r * 0.62);
+      ctx.beginPath();
+      ctx.arc(blipX, blipY, 3.5, 0, Math.PI * 2);
+      ctx.fillStyle = this.isOfflineMode ? "#FF3000" : "#00f0ff";
+      ctx.fill();
+
+      // Pulsing beacon ring
+      const ringR = 4 + (Date.now() % 1200) / 75;
+      const ringAlpha = Math.max(0, 1 - ringR / 20);
+      ctx.beginPath();
+      ctx.arc(blipX, blipY, ringR, 0, Math.PI * 2);
+      ctx.strokeStyle = this.isOfflineMode ? `rgba(255, 48, 0, ${ringAlpha})` : `rgba(0, 240, 255, ${ringAlpha})`;
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+
+      this.offlineRadarAngle += 0.042;
+      this.offlineRadarAnimFrame = requestAnimationFrame(render);
+    };
+
+    render();
+  }
+
+  stopOfflineRadarAnimation() {
+    if (this.offlineRadarAnimFrame) {
+      cancelAnimationFrame(this.offlineRadarAnimFrame);
+      this.offlineRadarAnimFrame = null;
+    }
   }
 
   initMap() {
@@ -157,6 +502,7 @@ class AegisApp {
     this.switchBasemap(this.currentBasemap);
 
     this.mapLayers.infraGroup.addTo(this.map);
+    setTimeout(() => this.map.invalidateSize(), 200);
   }
 
   bindEvents() {
@@ -310,26 +656,35 @@ class AegisApp {
       this.exportCsvAuditLedger();
     });
 
-    // API Key Modal Controls
+    // API Key Modal Controls (Optional / Headless API key support)
     const apiKeyModal = document.getElementById("apiKeyModal");
-    document.getElementById("btnApiKey").addEventListener("click", () => {
-      document.getElementById("inputApiKey").value = this.gemini.apiKey || "";
-      apiKeyModal.classList.remove("hidden");
-    });
-    document.getElementById("btnCloseModal").addEventListener("click", () => {
-      apiKeyModal.classList.add("hidden");
-    });
-    document.getElementById("btnSaveApiKey").addEventListener("click", () => {
-      const key = document.getElementById("inputApiKey").value.trim();
-      this.gemini.setApiKey(key);
-      apiKeyModal.classList.add("hidden");
-      alert(key ? "Gemini API Key saved successfully!" : "API Key cleared. Using built-in reasoning engine.");
-    });
-    document.getElementById("btnClearApiKey").addEventListener("click", () => {
-      this.gemini.setApiKey("");
-      document.getElementById("inputApiKey").value = "";
-      apiKeyModal.classList.add("hidden");
-    });
+    const btnApiKey = document.getElementById("btnApiKey");
+    if (btnApiKey && apiKeyModal) {
+      btnApiKey.addEventListener("click", () => {
+        document.getElementById("inputApiKey").value = this.gemini.apiKey || "";
+        apiKeyModal.classList.remove("hidden");
+      });
+      const btnCloseModal = document.getElementById("btnCloseModal");
+      if (btnCloseModal) {
+        btnCloseModal.addEventListener("click", () => apiKeyModal.classList.add("hidden"));
+      }
+      const btnSaveApiKey = document.getElementById("btnSaveApiKey");
+      if (btnSaveApiKey) {
+        btnSaveApiKey.addEventListener("click", () => {
+          const key = document.getElementById("inputApiKey").value.trim();
+          this.gemini.setApiKey(key);
+          apiKeyModal.classList.add("hidden");
+        });
+      }
+      const btnClearApiKey = document.getElementById("btnClearApiKey");
+      if (btnClearApiKey) {
+        btnClearApiKey.addEventListener("click", () => {
+          this.gemini.setApiKey("");
+          document.getElementById("inputApiKey").value = "";
+          apiKeyModal.classList.add("hidden");
+        });
+      }
+    }
 
     // National Systems & OASIS CAP v1.2 Gateway Modal
     const natSysModal = document.getElementById("nationalSystemsModal");
@@ -513,11 +868,9 @@ class AegisApp {
       clearInterval(this.playInterval);
       this.isPlaying = false;
       document.getElementById("playIcon").innerHTML = '<i class="ti ti-player-play"></i>';
-      document.getElementById("playText").textContent = "Simulate";
     } else {
       this.isPlaying = true;
       document.getElementById("playIcon").innerHTML = '<i class="ti ti-player-pause"></i>';
-      document.getElementById("playText").textContent = "Pause";
 
       this.playInterval = setInterval(() => {
         let next = (this.currentStepIdx + 1) % this.currentBasin.timeSteps.length;
@@ -707,7 +1060,7 @@ class AegisApp {
         .addTo(this.mapLayers.infraGroup)
         .bindPopup(`
           <div style="font-family: var(--font-swiss); font-size: 12px; color: #000000; min-width: 230px; text-transform: uppercase;">
-            <div style="font-size: 10px; font-weight: 900; color: #FF3000; letter-spacing: 0.08em; margin-bottom: 2px;">03. CRITICAL ASSET</div>
+            <div style="font-size: 10px; font-weight: 900; color: #FF3000; letter-spacing: 0.08em; margin-bottom: 2px;">02. CRITICAL ASSET</div>
             <strong style="font-size: 14px; font-weight: 900; color: #000000;">${asset.name}</strong><br/>
             <span style="display:inline-block; margin: 4px 0; padding: 2px 6px; font-weight: 900; background: #000000; color: #FFFFFF; font-size: 10px; letter-spacing: 0.05em;">
               STATUS: ${asset.currentStatus}
@@ -785,12 +1138,16 @@ class AegisApp {
 
       this.mapLayers.liveRadarOverlay = L.tileLayer(tileUrl, {
         opacity: 0.75,
+        maxNativeZoom: 7,
+        maxZoom: 19,
         zIndex: 400,
         attribution: "Live Doppler Radar &copy; RainViewer / NOAA NEXRAD"
       }).addTo(this.map);
     } catch (e) {
       this.mapLayers.liveRadarOverlay = L.tileLayer("https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/nexrad-n0q-900913/{z}/{x}/{y}.png", {
         opacity: 0.75,
+        maxNativeZoom: 10,
+        maxZoom: 19,
         zIndex: 400,
         attribution: "Live Doppler Radar &copy; NOAA NEXRAD"
       }).addTo(this.map);
@@ -968,9 +1325,11 @@ class AegisApp {
     const animate = () => {
       if (!this.activeLayers.windStreamlines || !this._windCanvas) return;
 
-      // Gentle fade for clean fluid particle trails
-      ctx.fillStyle = "rgba(255, 255, 255, 0.08)";
+      // Fade existing trails out to transparent without painting an opaque background over map
+      ctx.globalCompositeOperation = "destination-out";
+      ctx.fillStyle = "rgba(0, 0, 0, 0.12)";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.globalCompositeOperation = "source-over";
 
       const centerPoint = this.map.latLngToContainerPoint(this.currentStep.eyeCoord);
       const isNorthern = this.currentBasin.center[0] >= 0;
@@ -997,11 +1356,14 @@ class AegisApp {
           continue;
         }
 
-        const alpha = Math.min(1, p.life / 18) * 0.75;
+        const alpha = Math.min(1, p.life / 18) * 0.85;
         if (p.radius < 90) {
           ctx.strokeStyle = `rgba(255, 48, 0, ${alpha})`;
         } else {
-          ctx.strokeStyle = `rgba(0, 0, 0, ${alpha * 0.6})`;
+          const isLight = this.currentBasemap === "light";
+          ctx.strokeStyle = isLight
+            ? `rgba(20, 20, 20, ${alpha * 0.7})`
+            : `rgba(200, 225, 255, ${alpha * 0.75})`;
         }
 
         ctx.beginPath();
@@ -1019,11 +1381,13 @@ class AegisApp {
 
   updateInfrastructureList() {
     const list = document.getElementById("assetSummaryList");
+    if (!list) return;
     list.innerHTML = "";
 
     const assets = this.exposedAssets;
     const threatened = assets.filter(a => !a.currentStatus.includes("NORMAL") && !a.currentStatus.includes("SAFE"));
-    document.getElementById("threatCountBadge").textContent = `${threatened.length} At Risk`;
+    const badge = document.getElementById("threatCountBadge");
+    if (badge) badge.textContent = `${threatened.length} At Risk`;
 
     assets.forEach(asset => {
       let statusClass = "status-safe";
@@ -1104,19 +1468,16 @@ class AegisApp {
     if (this.dispatcher.isPlayingAudio) {
       this.dispatcher.stopSpeaking();
       document.getElementById("audioIcon").innerHTML = '<i class="ti ti-volume"></i>';
-      document.getElementById("audioText").textContent = "Voice Warning";
       wave.classList.add("hidden");
     } else {
       const adv = this.dispatcher.getAdvisories(this.currentBasinKey, this.currentStep, langSelect.value);
       const textToSpeak = `${adv.data.title}. ${adv.data.message}`;
 
       document.getElementById("audioIcon").innerHTML = '<i class="ti ti-player-stop"></i>';
-      document.getElementById("audioText").textContent = "Stop Broadcast";
       wave.classList.remove("hidden");
 
       this.dispatcher.speakAdvisory(textToSpeak, adv.data.langCode, () => {
         document.getElementById("audioIcon").innerHTML = '<i class="ti ti-volume"></i>';
-        document.getElementById("audioText").textContent = "Voice Warning";
         wave.classList.add("hidden");
       });
     }
@@ -1327,13 +1688,17 @@ class AegisApp {
     this.isLowBandwidthMode = !this.isLowBandwidthMode;
     const label = document.getElementById("bandwidthModeLabel");
     if (this.isLowBandwidthMode) {
-      label.textContent = "Net: Satcom Low-BW";
-      label.parentElement.classList.add("active");
+      if (label) {
+        label.textContent = "Net: Satcom Low-BW";
+        if (label.parentElement) label.parentElement.classList.add("active");
+      }
       this.renderGeeRaster();
-      alert("Switched to Low-Bandwidth / Satcom Mode: Suppressed high-resolution raster tile ingestion to conserve tactical satellite data.");
+      alert("Switched to Low-Bandwidth / Satcom Mode: Suppressed high-resolution raster tile ingestion to conserve tactical satellite data. Note: Press Ctrl+Shift+O anytime to test the full animated satellite offline blackout recovery HUD.");
     } else {
-      label.textContent = "Net: Adaptive";
-      label.parentElement.classList.remove("active");
+      if (label) {
+        label.textContent = "Net: Adaptive";
+        if (label.parentElement) label.parentElement.classList.remove("active");
+      }
       this.renderGeeRaster();
       alert("Switched to Adaptive Broadband Mode: Full GIS raster simulation restored.");
     }
