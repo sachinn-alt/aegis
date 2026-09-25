@@ -256,9 +256,13 @@
               <input type="checkbox" id="layerSurge" checked aria-label="Toggle Storm Surge Polygon" />
               <span class="chip-inner"><i class="ti ti-wave-sine icon-surge"></i><span>Surge Zone</span></span>
             </label>
-            <label class="tactical-chip" title="Critical Infrastructure Network (Hospitals, Substations, Ports, Shelters)">
+            <label class="tactical-chip" title="Critical Infrastructure Network (Hospitals, Substations, Shelters)">
               <input type="checkbox" id="layerInfrastructure" checked aria-label="Toggle Critical Infrastructure Network" />
               <span class="chip-inner"><i class="ti ti-building-factory icon-infra"></i><span>Infra Network</span></span>
+            </label>
+            <label class="tactical-chip" title="Major Road Highways & Evacuation Corridors">
+              <input type="checkbox" id="layerHighways" checked aria-label="Toggle Highway Corridors" />
+              <span class="chip-inner"><i class="ti ti-road icon-infra"></i><span>Highways</span></span>
             </label>
             <label class="tactical-chip" title="Copernicus Sentinel-1 SAR Coastal Flood Inundation (GEE)">
               <input type="checkbox" id="layerGee" aria-label="Toggle Sentinel-1 SAR Raster" />
@@ -347,6 +351,10 @@
             <div class="legend-row"><span class="legend-color-dot dot-high" aria-hidden="true"></span> Critical Alert / Cut Off</div>
             <div class="legend-row"><span class="legend-color-dot dot-warning" aria-hidden="true"></span> Backup Power / Monitored</div>
             <div class="legend-row"><span class="legend-color-dot dot-safe" aria-hidden="true"></span> Fortified / Operational</div>
+            <div style="border-top: 1px solid #000000; margin: 4px 0 3px 0;"></div>
+            <div class="legend-row"><i class="ti ti-plane" style="font-size: 11px; margin-right: 4px; color: #000000;"></i> Airport / Airbase</div>
+            <div class="legend-row"><i class="ti ti-anchor" style="font-size: 11px; margin-right: 4px; color: #000000;"></i> Deepwater Seaport</div>
+            <div class="legend-row"><i class="ti ti-road" style="font-size: 11px; margin-right: 4px; color: #000000;"></i> Arterial Highway</div>
           </div>
         </div>
 

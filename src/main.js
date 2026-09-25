@@ -39,7 +39,8 @@ class AegisApp {
       cone: true,
       surge: true,
       gee: false,
-      infrastructure: true
+      infrastructure: true,
+      highways: true
     };
 
     // Basemaps (Esri Tactical Dark, Esri Light, Real Satellite Imagery, Topographic)
@@ -102,6 +103,7 @@ class AegisApp {
       infraredOverlay: null,
       firmsOverlay: null,
       windCanvasLayer: null,
+      highwaysGroup: L.layerGroup(),
       infraGroup: L.layerGroup()
     };
     this.windAnimFrame = null;
@@ -502,6 +504,7 @@ class AegisApp {
     // Initialize Default Basemap (Tactical Dark)
     this.switchBasemap(this.currentBasemap);
 
+    this.mapLayers.highwaysGroup.addTo(this.map);
     this.mapLayers.infraGroup.addTo(this.map);
     setTimeout(() => this.map.invalidateSize(), 200);
   }
@@ -545,6 +548,7 @@ class AegisApp {
       ["layerTrack", "track", () => this.renderTrack()],
       ["layerCone", "cone", () => this.renderCone()],
       ["layerSurge", "surge", () => this.renderSurge()],
+      ["layerHighways", "highways", () => this.renderHighways()],
       ["layerInfrastructure", "infrastructure", () => this.renderInfrastructure()],
       ["layerGee", "gee", () => this.renderGeeRaster()],
       ["layerLiveRadar", "liveRadar", () => this.renderLiveRadar()],
@@ -800,6 +804,7 @@ class AegisApp {
       this.activeLayers.surge = true;
       this.activeLayers.cone = true;
       this.activeLayers.windStreamlines = true;
+      this.activeLayers.highways = true;
       this.activeLayers.infrastructure = true;
       this.activeLayers.gee = false;
       this.activeLayers.liveRadar = false;
@@ -812,6 +817,7 @@ class AegisApp {
       this.activeLayers.surge = false;
       this.activeLayers.cone = false;
       this.activeLayers.windStreamlines = false;
+      this.activeLayers.highways = false;
       this.activeLayers.infrastructure = false;
       this.activeLayers.gee = true;
       this.activeLayers.liveRadar = true;
@@ -834,6 +840,7 @@ class AegisApp {
     this.renderTrack();
     this.renderCone();
     this.renderSurge();
+    this.renderHighways();
     this.renderInfrastructure();
     this.renderGeeRaster();
     this.renderLiveRadar();
@@ -943,6 +950,7 @@ class AegisApp {
     this.renderInfrared();
     this.renderFirms();
     this.renderWindStreamlines();
+    this.renderHighways();
     this.renderInfrastructure();
 
     // Update Infrastructure Mini-List
@@ -1130,23 +1138,49 @@ class AegisApp {
 
     this.exposedAssets.forEach(asset => {
       let pinClass = "pin-safe";
-      if (asset.currentStatus.includes("FAIL") || asset.currentStatus.includes("SUBMERG")) {
+      if (asset.currentStatus.includes("FAIL") || asset.currentStatus.includes("SUBMERG") || asset.currentStatus.includes("BREACH")) {
         pinClass = "pin-critical";
-      } else if (asset.currentStatus.includes("CUT") || asset.currentStatus.includes("HIGH") || asset.currentStatus.includes("PARTIAL")) {
+      } else if (asset.currentStatus.includes("CUT") || asset.currentStatus.includes("HIGH") || asset.currentStatus.includes("PARTIAL") || asset.currentStatus.includes("GROUND_STOP") || asset.currentStatus.includes("CLOSED")) {
         pinClass = "pin-high";
-      } else if (asset.currentStatus.includes("PREP") || asset.currentStatus.includes("STOCK") || asset.currentStatus.includes("MONITOR")) {
+      } else if (asset.currentStatus.includes("PREP") || asset.currentStatus.includes("STOCK") || asset.currentStatus.includes("MONITOR") || asset.currentStatus.includes("RESTRICT") || asset.currentStatus.includes("DELAY")) {
         pinClass = "pin-warning";
       }
 
       let iconHtml = '<i class="ti ti-bolt"></i>';
-      if (asset.type === "hospital") iconHtml = '<i class="ti ti-building-hospital"></i>';
-      if (asset.type === "shelter") iconHtml = '<i class="ti ti-shield"></i>';
-      if (asset.type === "road" || asset.type === "bridge") iconHtml = '<i class="ti ti-bridge"></i>';
-      if (asset.type === "port" || asset.type === "marine") iconHtml = '<i class="ti ti-anchor"></i>';
+      let pinTypeClass = "pin-power";
+      let categoryTag = "CRITICAL INFRASTRUCTURE";
+
+      if (asset.type === "hospital") {
+        iconHtml = '<i class="ti ti-building-hospital"></i>';
+        pinTypeClass = "pin-hospital";
+        categoryTag = "HEALTHCARE & TRAUMA CENTER";
+      } else if (asset.type === "shelter") {
+        iconHtml = '<i class="ti ti-shield"></i>';
+        pinTypeClass = "pin-shelter";
+        categoryTag = "CYCLONE STORM SHELTER";
+      } else if (asset.type === "road" || asset.type === "highway") {
+        iconHtml = '<i class="ti ti-road"></i>';
+        pinTypeClass = "pin-highway";
+        categoryTag = "ARTERIAL EVACUATION HIGHWAY";
+      } else if (asset.type === "bridge") {
+        iconHtml = '<i class="ti ti-bridge"></i>';
+        pinTypeClass = "pin-bridge";
+        categoryTag = "COASTAL BRIDGE & CAUSEWAY";
+      } else if (asset.type === "port" || asset.type === "marine" || asset.type === "seaport") {
+        iconHtml = '<i class="ti ti-anchor"></i>';
+        pinTypeClass = "pin-seaport";
+        categoryTag = "DEEPWATER MARITIME PORT";
+      } else if (asset.type === "airport" || asset.type === "airfield") {
+        iconHtml = '<i class="ti ti-plane"></i>';
+        pinTypeClass = "pin-airport";
+        categoryTag = "COMMERCIAL & MILITARY AIRPORT";
+      } else if (asset.type === "power") {
+        categoryTag = "ENERGY & HIGH-VOLTAGE GRID";
+      }
 
       const pinIcon = L.divIcon({
         className: "custom-pin-wrapper",
-        html: `<div class="tactical-pin ${pinClass}">${iconHtml}</div>`,
+        html: `<div class="tactical-pin ${pinClass} ${pinTypeClass}">${iconHtml}</div>`,
         iconSize: [22, 22],
         iconAnchor: [11, 11]
       });
@@ -1154,12 +1188,16 @@ class AegisApp {
       const marker = L.marker(asset.coords, { icon: pinIcon })
         .addTo(this.mapLayers.infraGroup)
         .bindPopup(`
-          <div style="font-family: var(--font-swiss); font-size: 12px; color: #000000; min-width: 230px; text-transform: uppercase;">
-            <div style="font-size: 10px; font-weight: 900; color: #FF3000; letter-spacing: 0.08em; margin-bottom: 2px;">02. CRITICAL ASSET</div>
-            <strong style="font-size: 14px; font-weight: 900; color: #000000;">${asset.name}</strong><br/>
-            <span style="display:inline-block; margin: 4px 0; padding: 2px 6px; font-weight: 900; background: #000000; color: #FFFFFF; font-size: 10px; letter-spacing: 0.05em;">
-              STATUS: ${asset.currentStatus}
-            </span><br/>
+          <div style="font-family: var(--font-swiss); font-size: 12px; color: #000000; min-width: 240px; text-transform: uppercase;">
+            <div style="font-size: 10px; font-weight: 900; color: #FF3000; letter-spacing: 0.08em; margin-bottom: 2px;">
+              ${iconHtml} ${categoryTag}
+            </div>
+            <strong style="font-size: 13px; font-weight: 900; color: #000000; line-height: 1.2;">${asset.name}</strong><br/>
+            <div style="margin: 4px 0;">
+              <span style="display:inline-block; padding: 2px 6px; font-weight: 900; background: #000000; color: #FFFFFF; font-size: 10px; letter-spacing: 0.05em;">
+                STATUS: ${asset.currentStatus}
+              </span>
+            </div>
             <div style="font-family: var(--text-mono); font-size: 11px; margin-top: 4px;">
               <div><strong>ELEVATION:</strong> ${asset.elevationM}M MSL</div>
               <div><strong>SURGE EXPOSURE:</strong> +${asset.inundationDepthM}M</div>
@@ -1168,6 +1206,74 @@ class AegisApp {
             <p style="margin-top: 6px; font-size: 11px; color: #262626; text-transform: none; line-height: 1.35; border-top: 1px solid #000000; padding-top: 4px;">${asset.impactDescription}</p>
           </div>
         `);
+    });
+  }
+
+  // Major Road Highways & Evacuation Corridors
+  renderHighways() {
+    this.mapLayers.highwaysGroup.clearLayers();
+    if (!this.activeLayers.highways) return;
+
+    const highways = this.currentBasin.highways || [];
+    highways.forEach(hw => {
+      const status = (hw.statusByStep && hw.statusByStep[this.currentStep.step]) || "OPEN";
+      let color = "#10b981"; // Safe Green
+      let dashArray = null;
+      let weight = 4;
+      let opacity = 0.85;
+
+      if (status.includes("FLOOD") || status.includes("SUBMERG") || status.includes("IMPASSABLE") || status.includes("CLOSED") || status.includes("INTERDITADA")) {
+        color = "#ff3000"; // Swiss red / flooded
+        dashArray = "6, 6";
+        weight = 5;
+        opacity = 0.95;
+      } else if (status.includes("CONGEST") || status.includes("RESTRICT") || status.includes("CONTRAFLOW") || status.includes("WARNING") || status.includes("BLOQUEIO") || status.includes("INTENSA")) {
+        color = "#f59e0b"; // Amber / Congested
+        dashArray = "10, 4";
+        weight = 4;
+        opacity = 0.9;
+      }
+
+      // Outer contrasting glow line
+      L.polyline(hw.coords, {
+        color: "#000000",
+        weight: weight + 3,
+        opacity: 0.9,
+        lineCap: "round",
+        lineJoin: "round"
+      }).addTo(this.mapLayers.highwaysGroup);
+
+      // Core status polyline
+      const poly = L.polyline(hw.coords, {
+        color: color,
+        weight: weight,
+        opacity: opacity,
+        dashArray: dashArray,
+        lineCap: "round",
+        lineJoin: "round"
+      }).addTo(this.mapLayers.highwaysGroup);
+
+      poly.bindPopup(`
+        <div style="font-family: var(--font-swiss); font-size: 12px; color: #000000; min-width: 240px; text-transform: uppercase;">
+          <div style="font-size: 10px; font-weight: 900; color: #FF3000; letter-spacing: 0.08em; margin-bottom: 2px;">
+            <i class="ti ti-road"></i> ARTERIAL EVACUATION CORRIDOR
+          </div>
+          <strong style="font-size: 13px; font-weight: 900; color: #000000; line-height: 1.2;">${hw.name}</strong><br/>
+          <div style="margin: 4px 0;">
+            <span style="display:inline-block; padding: 2px 6px; font-weight: 900; background: ${color}; color: ${color === '#f59e0b' ? '#000000' : '#FFFFFF'}; font-size: 10px; letter-spacing: 0.05em;">
+              ROUTE STATUS: ${status}
+            </span>
+          </div>
+          <div style="font-family: var(--text-mono); font-size: 11px; margin-top: 4px;">
+            <div><strong>CORRIDOR CODE:</strong> ${hw.code}</div>
+            <div><strong>LANES:</strong> ${hw.lanes || "4-6 Lanes"}</div>
+            <div><strong>MAX EVAC CAPACITY:</strong> ${hw.evacCapacity || "50,000 veh/day"}</div>
+          </div>
+          <p style="margin-top: 6px; font-size: 11px; color: #262626; text-transform: none; line-height: 1.35; border-top: 1px solid #000000; padding-top: 4px;">
+            ${hw.description || "Designated emergency coastal evacuation and relief freight artery."}
+          </p>
+        </div>
+      `);
     });
   }
 
