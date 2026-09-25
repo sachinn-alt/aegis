@@ -14,6 +14,7 @@ import { IncidentTriageEngine, IncidentPriority } from "./engine/incident_triage
 import { ResourceTracker, ResourceCategory, ResourceStatus } from "./engine/resource_tracker.js";
 import { InterAgencyLogger } from "./engine/interagency_log.js";
 import { LiveStreamEngine } from "./engine/live_stream.js";
+import { CikrBridgeEngine } from "./engine/cikr_bridge.js";
 
 class AegisApp {
   constructor() {
@@ -86,6 +87,8 @@ class AegisApp {
     this.resources = new ResourceTracker();
     this.logger = new InterAgencyLogger();
     this.liveStream = new LiveStreamEngine({ intervalMs: 11000 });
+    this.cikr = new CikrBridgeEngine();
+    this.currentSelectedAsset = null;
 
     // Map & Layer References
     this.map = null;
@@ -672,6 +675,66 @@ class AegisApp {
       natSysModal.classList.add("hidden");
     });
 
+    // CIKR Public-Private Infrastructure Bridge Quick Launch
+    const btnCikr = document.getElementById("btnCikrBridge");
+    if (btnCikr) {
+      btnCikr.addEventListener("click", () => {
+        this.populateNationalSystemsModal();
+        natSysModal.classList.remove("hidden");
+        // Switch tab to tab-cikr-bridge
+        document.querySelectorAll(".modal-tab-btn").forEach(b => b.classList.remove("active"));
+        document.querySelectorAll(".modal-tab-content").forEach(c => c.classList.remove("active"));
+        const cikrTabBtn = document.querySelector('.modal-tab-btn[data-tab="tab-cikr-bridge"]');
+        const cikrTabContent = document.getElementById("tab-cikr-bridge");
+        if (cikrTabBtn) cikrTabBtn.classList.add("active");
+        if (cikrTabContent) cikrTabContent.classList.add("active");
+      });
+    }
+
+    // Floating Elevation Transect HUD Close
+    const btnCloseTransect = document.getElementById("btnCloseTransect");
+    if (btnCloseTransect) {
+      btnCloseTransect.addEventListener("click", () => {
+        document.getElementById("elevationTransectHud")?.classList.add("hidden");
+      });
+    }
+
+    // CIKR Mitigation Controls
+    const chkMicrogrid = document.getElementById("chkMicrogridIslanding");
+    if (chkMicrogrid) {
+      chkMicrogrid.addEventListener("change", (e) => {
+        this.cikr.microgridIslanding = e.target.checked;
+        this.populateCikrBridgeView();
+        if (this.currentSelectedAsset) {
+          this.showElevationTransect(this.currentSelectedAsset);
+        }
+      });
+    }
+
+    const chkDeployBarriers = document.getElementById("chkDeployBarriers");
+    if (chkDeployBarriers) {
+      chkDeployBarriers.addEventListener("change", (e) => {
+        this.cikr.mobileBarrierDeployed = e.target.checked;
+        this.populateCikrBridgeView();
+        if (this.currentSelectedAsset) {
+          this.showElevationTransect(this.currentSelectedAsset);
+        }
+      });
+    }
+
+    // Export CIKR ISO 22301 Continuity Brief
+    const btnExportCikr = document.getElementById("btnExportCikrBrief");
+    if (btnExportCikr) {
+      btnExportCikr.addEventListener("click", () => {
+        const brief = this.cikr.generateCrossSectorBrief(this.currentBasin, this.currentStep);
+        navigator.clipboard.writeText(brief).then(() => {
+          alert("✓ ISO 22301 / OASIS CAP Cross-Sector Continuity Brief copied to clipboard!");
+        }).catch(() => {
+          console.log(brief);
+        });
+      });
+    }
+
     // Modal Tabs Navigation
     document.querySelectorAll(".modal-tab-btn").forEach(btn => {
       btn.addEventListener("click", (e) => {
@@ -960,6 +1023,12 @@ class AegisApp {
     // Update Advisory
     const currentLang = document.getElementById("advisoryLangSelect").value;
     this.updateAdvisoryDisplay(currentLang);
+
+    // Update CIKR Public-Private Bridge & Elevation Transect if active
+    if (this.currentSelectedAsset) {
+      this.showElevationTransect(this.currentSelectedAsset);
+    }
+    this.populateCikrBridgeView();
   }
 
   renderTrack() {
@@ -1187,8 +1256,13 @@ class AegisApp {
       });
 
       const marker = L.marker(asset.coords, { icon: pinIcon })
-        .addTo(this.mapLayers.infraGroup)
-        .bindPopup(`
+        .addTo(this.mapLayers.infraGroup);
+
+      marker.on("click", () => {
+        this.showElevationTransect(asset);
+      });
+
+      marker.bindPopup(`
           <div style="font-family: var(--font-swiss); font-size: 12px; color: #000000; min-width: 240px; text-transform: uppercase;">
             <div style="font-size: 10px; font-weight: 900; color: #FF3000; letter-spacing: 0.08em; margin-bottom: 2px;">
               ${iconHtml} ${categoryTag}
@@ -1205,8 +1279,20 @@ class AegisApp {
               <div><strong>CAPACITY:</strong> ${asset.capacity}</div>
             </div>
             <p style="margin-top: 6px; font-size: 11px; color: #262626; text-transform: none; line-height: 1.35; border-top: 1px solid #000000; padding-top: 4px;">${asset.impactDescription}</p>
+            <button class="btn-accent-sm btn-inspect-transect" style="width: 100%; margin-top: 6px; display: flex; align-items: center; justify-content: center; gap: 4px;" data-asset-id="${asset.id}">
+              <i class="ti ti-chart-bar"></i> Inspect Elevation Transect
+            </button>
           </div>
         `);
+
+      marker.on("popupopen", () => {
+        const btn = document.querySelector(`.btn-inspect-transect[data-asset-id="${asset.id}"]`);
+        if (btn) {
+          btn.onclick = () => {
+            this.showElevationTransect(asset);
+          };
+        }
+      });
     });
   }
 
@@ -1845,6 +1931,172 @@ class AegisApp {
       this.exposedAssets
     );
     document.getElementById("satcomPacketPreview").value = satcomPacket;
+
+    // Populate CIKR Public-Private Infrastructure Bridge
+    this.populateCikrBridgeView();
+  }
+
+  // Populate CIKR Cross-Sector Stakeholders and Live Domino Simulation
+  populateCikrBridgeView() {
+    if (!this.cikr) return;
+    const profile = this.cikr.getSectorBridgeProfile(this.currentBasinKey);
+    const cascade = this.cikr.simulateCascadingFailure(this.currentBasin, this.currentStep);
+
+    // Sync Mitigation Checkboxes
+    const chkMicro = document.getElementById("chkMicrogridIslanding");
+    if (chkMicro) chkMicro.checked = this.cikr.microgridIslanding;
+
+    const chkBar = document.getElementById("chkDeployBarriers");
+    if (chkBar) chkBar.checked = this.cikr.mobileBarrierDeployed;
+
+    // 1. Populate Government vs Private Stakeholders
+    const govList = document.getElementById("cikrGovSectorList");
+    if (govList) {
+      govList.innerHTML = profile.governmentAgencies.map(g => `
+        <div class="cikr-stakeholder-item">
+          <div class="cikr-item-name">${g.name}</div>
+          <div class="cikr-item-role">${g.role}</div>
+        </div>
+      `).join("");
+    }
+
+    const pvtList = document.getElementById("cikrPvtSectorList");
+    if (pvtList) {
+      pvtList.innerHTML = profile.privateOperators.map(p => `
+        <div class="cikr-stakeholder-item">
+          <div class="cikr-item-name">${p.name}</div>
+          <div class="cikr-item-role">${p.role}</div>
+        </div>
+      `).join("");
+    }
+
+    // 2. Populate Cascading Domino Chains
+    const cascadeContainer = document.getElementById("cikrCascadeContainer");
+    if (cascadeContainer) {
+      cascadeContainer.innerHTML = cascade.chains.map(chain => {
+        let statusClass = "status-safe";
+        if (chain.status.includes("TRIPPED") || chain.status.includes("INUNDATED") || chain.status.includes("IMPASSABLE")) {
+          statusClass = "status-danger";
+        } else if (chain.status.includes("HIGH_RISK") || chain.status.includes("RESTRICT") || chain.status.includes("SUSPENDED")) {
+          statusClass = "status-warn";
+        }
+
+        const downstreamHtml = chain.downstreamImpacts.length > 0
+          ? chain.downstreamImpacts.map(d => `
+              <div class="downstream-node">
+                <span class="node-sector-tag">${d.sector}</span>
+                <span><strong>${d.target}:</strong> ${d.effect}</span>
+              </div>
+            `).join("")
+          : `<div class="downstream-node" style="color: #16A34A; font-weight: 700;"><i class="ti ti-shield-check"></i> Primary defenses held: No downstream domino ripple failures detected.</div>`;
+
+        return `
+          <div class="cascade-chain-card">
+            <div class="cascade-chain-header">
+              <div>
+                <span class="cascade-sector-name">${chain.sector}</span>
+                <span class="cascade-ownership">[${chain.ownership}]</span>
+              </div>
+              <span class="cascade-status-pill ${statusClass}">${chain.status}</span>
+            </div>
+            <div style="font-family: var(--font-swiss); font-size: 0.65rem; color: #444444; margin-bottom: 4px;">
+              Primary Trigger Node: <strong>${chain.source}</strong>
+            </div>
+            <div class="cascade-downstream-grid">
+              ${downstreamHtml}
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+  }
+
+  // Render Physical Coastal Bathymetry & Elevation Transect Cutaway HUD
+  showElevationTransect(asset) {
+    if (!asset || !this.cikr) return;
+    this.currentSelectedAsset = asset;
+    const hud = document.getElementById("elevationTransectHud");
+    if (!hud) return;
+
+    const transect = this.cikr.generateElevationTransect(asset, this.currentStep);
+    hud.classList.remove("hidden");
+
+    // Update Header and Metrics
+    const nameEl = document.getElementById("transectAssetName");
+    if (nameEl) nameEl.textContent = `${transect.assetName} [${(transect.assetType || "INFRA").toUpperCase()}]`;
+
+    const pillEl = document.getElementById("transectFreeboardPill");
+    const valEl = document.getElementById("transectFreeboardVal");
+    const breachInd = document.getElementById("transectBreachIndicator");
+
+    if (valEl) {
+      if (transect.isBreached) {
+        valEl.textContent = `BREACH -${transect.breachDepthM.toFixed(2)}M`;
+        pillEl?.classList.add("breached");
+        if (breachInd) breachInd.innerHTML = `<span style="color: #DC2626; font-weight: 800;"><i class="ti ti-alert-triangle"></i> SUBMERGED: Inundation +${transect.breachDepthM.toFixed(2)}m over defensive crest</span>`;
+      } else {
+        valEl.textContent = `SAFE +${transect.freeboardMarginM.toFixed(2)}M`;
+        pillEl?.classList.remove("breached");
+        if (breachInd) breachInd.innerHTML = `<span style="color: #16A34A; font-weight: 800;"><i class="ti ti-shield-check"></i> FREEBOARD BUFFER: +${transect.freeboardMarginM.toFixed(2)}m above peak surge</span>`;
+      }
+    }
+
+    // Coordinate mapping for SVG cross-section
+    const minX = 40, maxX = 680;
+    const minY = 16, maxY = 96;
+    const minElev = -18, maxElev = 20;
+
+    const mapX = (km) => Number((minX + (km / 15.0) * (maxX - minX)).toFixed(1));
+    const mapY = (elev) => Number((maxY - ((elev - minElev) / (maxElev - minElev)) * (maxY - minY)).toFixed(1));
+
+    const terrainPoints = transect.profilePoints.map(p => `${mapX(p.distKm)},${mapY(p.terrainM)}`);
+    const terrainPolygon = `${mapX(0)},${maxY} ` + terrainPoints.join(" ") + ` ${mapX(15)},${maxY}`;
+
+    const surgeLevelY = mapY(transect.surgeHeightM);
+    const waterEndKm = transect.isBreached ? 7.5 : 4.8;
+    const waterEndX = mapX(waterEndKm);
+    const waterPolygon = `${mapX(0)},${maxY} ${mapX(0)},${surgeLevelY} ${waterEndX},${surgeLevelY} ${waterEndX},${maxY}`;
+
+    const assetPt = transect.profilePoints.find(p => p.isAsset) || transect.profilePoints[3];
+    const assetX = mapX(assetPt.distKm);
+    const assetY = mapY(assetPt.terrainM);
+    const defenseY = mapY(transect.effectiveDefenseM);
+
+    const svgEl = document.getElementById("transectSvg");
+    if (svgEl) {
+      svgEl.innerHTML = `
+        <!-- Reference Grid Lines -->
+        <line x1="${minX}" y1="${mapY(0)}" x2="${maxX}" y2="${mapY(0)}" stroke="#D1D5DB" stroke-width="1" stroke-dasharray="3,3"/>
+        <text x="${minX - 4}" y="${mapY(0) + 3}" fill="#6B7280" font-family="monospace" font-size="8" text-anchor="end">0m MSL</text>
+        <line x1="${minX}" y1="${maxY}" x2="${maxX}" y2="${maxY}" stroke="#9CA3AF" stroke-width="1"/>
+
+        <!-- Distance Axis Labels -->
+        <text x="${minX}" y="112" fill="#6B7280" font-family="monospace" font-size="8.5">0 km (Deep Sea Shelf)</text>
+        <text x="${mapX(4.8)}" y="112" fill="#111827" font-family="monospace" font-size="8.5" font-weight="bold" text-anchor="middle">4.8 km (Shoreline / Quayside)</text>
+        <text x="${maxX}" y="112" fill="#6B7280" font-family="monospace" font-size="8.5" text-anchor="end">15 km (Inland)</text>
+
+        <!-- Ocean Surge Wave Polygon -->
+        <polygon points="${waterPolygon}" fill="#0284C7" fill-opacity="0.45" stroke="#0284C7" stroke-width="2"/>
+        
+        <!-- Surge Level Waterline -->
+        <line x1="${minX}" y1="${surgeLevelY}" x2="${waterEndX}" y2="${surgeLevelY}" stroke="#0369A1" stroke-width="2" stroke-dasharray="4,2"/>
+        <text x="${minX + 6}" y="${surgeLevelY - 4}" fill="#0369A1" font-family="monospace" font-size="9" font-weight="bold">Surge Crest: +${transect.surgeHeightM}m MSL</text>
+
+        <!-- Topographic Ground Terrain -->
+        <polygon points="${terrainPolygon}" fill="#854D0E" fill-opacity="0.3" stroke="#78350F" stroke-width="2"/>
+
+        <!-- Asset Foundation Base Column -->
+        <rect x="${assetX - 8}" y="${assetY - 10}" width="16" height="${maxY - (assetY - 10)}" fill="#111827" stroke="#000000" stroke-width="1.5"/>
+        
+        <!-- Protective Barrier Crest Line -->
+        <line x1="${assetX - 14}" y1="${defenseY}" x2="${assetX + 14}" y2="${defenseY}" stroke="#DC2626" stroke-width="3"/>
+        
+        <!-- Asset Identification Dot & Status -->
+        <circle cx="${assetX}" cy="${assetY - 16}" r="5" fill="${transect.isBreached ? '#DC2626' : '#16A34A'}" stroke="#FFFFFF" stroke-width="1.5"/>
+        <text x="${assetX}" y="${assetY - 22}" fill="#111827" font-family="sans-serif" font-size="9" font-weight="900" text-anchor="middle">${transect.assetName}</text>
+        <text x="${assetX}" y="${defenseY - 4}" fill="#DC2626" font-family="monospace" font-size="8.5" font-weight="bold" text-anchor="middle">Def: +${transect.effectiveDefenseM}m</text>
+      `;
+    }
   }
 
   downloadCapXml() {

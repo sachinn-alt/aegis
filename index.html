@@ -153,6 +153,9 @@
           <button id="btnCopFocus" class="btn-ghost" title="Full Common Operating Picture (COP) - Dismiss sidebars to inspect map" aria-label="Toggle Full COP View">
             <i class="ti ti-layout-sidebar-left-collapse"></i>
           </button>
+          <button id="btnCikrBridge" class="btn-ghost" title="Public-Private Infrastructure Continuity Bridge (CIKR Nexus)" aria-label="CIKR Public-Private Bridge">
+            <i class="ti ti-binary-tree"></i> <span>CIKR</span>
+          </button>
           <button id="btnNationalSystems" class="btn-ghost" title="Native Emergency Systems & OASIS CAP v1.2 Gateway" aria-label="National Systems & CAP Gateway">
             <i class="ti ti-world"></i>
           </button>
@@ -338,6 +341,36 @@
         <!-- Interactive Map Container -->
         <div id="gisMap" class="tactical-map-container" role="region" aria-label="Coastal GIS Map Viewport"></div>
 
+        <!-- Floating Elevation & Surge Cross-Section Transect HUD -->
+        <div id="elevationTransectHud" class="elevation-transect-hud hidden" role="region" aria-label="Physical Coastal Elevation and Surge Transect Profile">
+          <div class="transect-header">
+            <div class="transect-title-group">
+              <span class="transect-badge"><i class="ti ti-chart-bar"></i> 06. PHYSICAL ELEVATION &amp; SURGE TRANSECT</span>
+              <strong id="transectAssetName" class="transect-asset-name">Select Asset on Map</strong>
+            </div>
+            <div class="transect-controls">
+              <div class="transect-metric-pill" id="transectFreeboardPill">
+                <span class="pill-label">FREEBOARD:</span>
+                <span class="pill-val" id="transectFreeboardVal">--</span>
+              </div>
+              <button id="btnCloseTransect" class="btn-transect-close" title="Close Elevation Transect HUD" aria-label="Close Transect HUD">
+                <i class="ti ti-x"></i>
+              </button>
+            </div>
+          </div>
+          <div class="transect-body">
+            <svg id="transectSvg" viewBox="0 0 720 120" class="transect-svg" preserveAspectRatio="none">
+              <!-- Rendered dynamically by CikrBridgeEngine -->
+            </svg>
+            <div class="transect-legend-bar">
+              <span class="t-leg-item"><span class="t-swatch swatch-sea"></span> Ocean Water / Surge Wave</span>
+              <span class="t-leg-item"><span class="t-swatch swatch-terrain"></span> Topographic Land Terrain</span>
+              <span class="t-leg-item"><span class="t-swatch swatch-asset"></span> Asset Foundation &amp; Seawall</span>
+              <span class="t-leg-item" id="transectBreachIndicator"><i class="ti ti-info-circle"></i> Click any asset on map to inspect</span>
+            </div>
+          </div>
+        </div>
+
         <!-- Floating Map Legend -->
         <div class="map-legend-overlay" id="mapLegendOverlay" aria-label="Map Legend">
           <div class="legend-header">
@@ -515,6 +548,7 @@
             <button class="modal-tab-btn" data-tab="tab-satcom"><i class="ti ti-satellite"></i> Tactical Satcom Packet</button>
             <button class="modal-tab-btn" data-tab="tab-cad-triage"><i class="ti ti-urgent"></i> CAD Triage &amp; Resources</button>
             <button class="modal-tab-btn" data-tab="tab-ics214"><i class="ti ti-clipboard-list"></i> Inter-Agency Log (ICS-214)</button>
+            <button class="modal-tab-btn" data-tab="tab-cikr-bridge"><i class="ti ti-binary-tree"></i> CIKR Public-Private Bridge</button>
             <button class="modal-tab-btn" data-tab="tab-import"><i class="ti ti-upload"></i> Import Custom Country</button>
           </div>
 
@@ -611,6 +645,56 @@
               </div>
             </div>
             <pre class="code-preview-box"><code id="ics214LogPreview">&lt;!-- ICS-214 Log will be rendered here --&gt;</code></pre>
+          </div>
+
+          <!-- Tab: CIKR Public-Private Infrastructure Continuity Bridge -->
+          <div id="tab-cikr-bridge" class="modal-tab-content">
+            <p class="modal-desc">
+              Bridging the gap between <strong>Government Disaster Management Agencies (NDMA/OSDMA/FEMA)</strong> and <strong>Private Sector Infrastructure Operators</strong> (Port Terminals, Microgrid Utilities, Telecom Telcos, Logistics Fleets, Commercial Hospitals).
+            </p>
+
+            <div class="cikr-section-title"><i class="ti ti-exchange"></i> Cross-Sector Stakeholder Alignment Matrix</div>
+            <div class="cikr-stakeholder-grid">
+              <div class="cikr-stakeholder-col gov-col">
+                <div class="cikr-col-header"><i class="ti ti-building-government"></i> PUBLIC SECTOR (GOVERNMENT / EOC)</div>
+                <div class="cikr-col-body" id="cikrGovSectorList">
+                  <!-- Populated by CikrBridgeEngine -->
+                </div>
+              </div>
+              <div class="cikr-stakeholder-col pvt-col">
+                <div class="cikr-col-header"><i class="ti ti-building-store"></i> PRIVATE SECTOR (UTILITIES &amp; INDUSTRY)</div>
+                <div class="cikr-col-body" id="cikrPvtSectorList">
+                  <!-- Populated by CikrBridgeEngine -->
+                </div>
+              </div>
+            </div>
+
+            <div class="cikr-section-title" style="margin-top: 14px;"><i class="ti ti-activity"></i> Live Cascading Infrastructure Domino Engine</div>
+            <p class="modal-desc" style="margin-bottom: 8px;">
+              Cross-sector dependency chains showing real-time ripple failures from grid collapse to municipal water, port container gantry handling, and hospital ICUs:
+            </p>
+            <div id="cikrCascadeContainer" class="cikr-cascade-list">
+              <!-- Dynamically populated cascading dependency dominoes -->
+            </div>
+
+            <div class="cikr-controls-box">
+              <div class="cikr-ctrl-left">
+                <div class="cikr-ctrl-heading">CONTINUITY MITIGATION CONTROLS:</div>
+                <label class="cikr-switch-label">
+                  <input type="checkbox" id="chkMicrogridIslanding">
+                  <span>Activate Private Substation Microgrid Islanding</span>
+                </label>
+                <label class="cikr-switch-label">
+                  <input type="checkbox" id="chkDeployBarriers">
+                  <span>Deploy Fast-Erect Inflatable Flood Barriers (+1.5m freeboard)</span>
+                </label>
+              </div>
+              <div class="cikr-ctrl-right">
+                <button id="btnExportCikrBrief" class="btn-accent-sm">
+                  <i class="ti ti-copy"></i> Copy ISO 22301 Continuity Brief
+                </button>
+              </div>
+            </div>
           </div>
 
           <!-- Tab 6: Import Custom Country / Basin -->

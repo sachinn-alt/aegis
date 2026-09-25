@@ -2717,3 +2717,389 @@ body.theme-high-contrast .spec-value {
   background: #F8F8F8;
 }
 
+/* ==========================================================================
+   CIKR Public-Private Bridge & Elevation Transect HUD
+   ========================================================================== */
+
+/* Floating Elevation & Surge Cross-Section Transect HUD */
+.elevation-transect-hud {
+  position: absolute;
+  bottom: 84px;
+  left: 20px;
+  right: 20px;
+  z-index: 450;
+  background: #FFFFFF;
+  border: 2px solid #000000;
+  box-shadow: 4px 4px 0px rgba(0,0,0,1);
+  display: flex;
+  flex-direction: column;
+  animation: slideUpHud 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideUpHud {
+  from { transform: translateY(12px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.elevation-transect-hud.hidden {
+  display: none !important;
+}
+
+.transect-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #000000;
+  color: #FFFFFF;
+  padding: 6px 12px;
+  border-bottom: 2px solid #000000;
+}
+
+.transect-title-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.transect-badge {
+  font-family: var(--font-swiss);
+  font-size: 0.65rem;
+  font-weight: 900;
+  background: var(--swiss-accent);
+  color: #FFFFFF;
+  padding: 2px 6px;
+  letter-spacing: 0.05em;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.transect-asset-name {
+  font-family: var(--font-swiss);
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #FFFFFF;
+  letter-spacing: 0.02em;
+}
+
+.transect-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.transect-metric-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #1A1A1A;
+  border: 1px solid #444444;
+  padding: 2px 8px;
+}
+
+.transect-metric-pill .pill-label {
+  font-family: var(--font-swiss);
+  font-size: 0.62rem;
+  font-weight: 800;
+  color: #AAAAAA;
+}
+
+.transect-metric-pill .pill-val {
+  font-family: var(--text-mono);
+  font-size: 0.75rem;
+  font-weight: 900;
+  color: #FFFFFF;
+}
+
+.transect-metric-pill.breached {
+  background: var(--swiss-accent);
+  border-color: #FFFFFF;
+}
+
+.transect-metric-pill.breached .pill-val {
+  color: #FFFFFF;
+  animation: pulseBreach 1s infinite alternate;
+}
+
+@keyframes pulseBreach {
+  from { opacity: 1; }
+  to { opacity: 0.7; }
+}
+
+.btn-transect-close {
+  background: transparent;
+  border: 1px solid #666666;
+  color: #FFFFFF;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+
+.btn-transect-close:hover {
+  background: var(--swiss-accent);
+  border-color: var(--swiss-accent);
+}
+
+.transect-body {
+  padding: 8px 12px 6px 12px;
+  background: #FAFAFA;
+}
+
+.transect-svg {
+  width: 100%;
+  height: 85px;
+  display: block;
+  overflow: visible;
+}
+
+.transect-legend-bar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 4px;
+  padding-top: 4px;
+  border-top: 1px solid #E0E0E0;
+  font-family: var(--font-swiss);
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: #555555;
+}
+
+.t-leg-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.t-swatch {
+  width: 10px;
+  height: 10px;
+  display: inline-block;
+  border: 1px solid #000000;
+}
+
+.swatch-sea { background: #0284C7; }
+.swatch-terrain { background: #854D0E; }
+.swatch-asset { background: #DC2626; }
+
+/* CIKR Cross-Sector Styles in National Systems Modal */
+.cikr-section-title {
+  font-family: var(--font-swiss);
+  font-size: 0.78rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #000000;
+  border-bottom: 2px solid #000000;
+  padding-bottom: 4px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cikr-stakeholder-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.cikr-stakeholder-col {
+  border: 2px solid #000000;
+  background: #FFFFFF;
+}
+
+.cikr-col-header {
+  padding: 6px 10px;
+  font-family: var(--font-swiss);
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.gov-col .cikr-col-header {
+  background: #000000;
+  color: #FFFFFF;
+}
+
+.pvt-col .cikr-col-header {
+  background: #2563EB;
+  color: #FFFFFF;
+}
+
+.cikr-col-body {
+  padding: 6px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 160px;
+  overflow-y: auto;
+}
+
+.cikr-stakeholder-item {
+  padding: 4px 6px;
+  background: #F4F4F4;
+  border-left: 3px solid #000000;
+}
+
+.pvt-col .cikr-stakeholder-item {
+  border-left-color: #2563EB;
+}
+
+.cikr-item-name {
+  font-family: var(--font-swiss);
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: #000000;
+}
+
+.cikr-item-role {
+  font-family: var(--font-swiss);
+  font-size: 0.62rem;
+  color: #555555;
+  margin-top: 1px;
+}
+
+.cikr-cascade-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.cascade-chain-card {
+  border: 2px solid #000000;
+  background: #FFFFFF;
+  padding: 8px 10px;
+}
+
+.cascade-chain-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.cascade-sector-name {
+  font-family: var(--font-swiss);
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  color: #000000;
+}
+
+.cascade-ownership {
+  font-family: var(--font-swiss);
+  font-size: 0.6rem;
+  color: #666666;
+  font-weight: 700;
+  margin-left: 6px;
+}
+
+.cascade-status-pill {
+  font-family: var(--text-mono);
+  font-size: 0.62rem;
+  font-weight: 800;
+  padding: 2px 6px;
+  border: 1px solid #000000;
+  text-transform: uppercase;
+}
+
+.status-danger {
+  background: #DC2626;
+  color: #FFFFFF;
+  border-color: #DC2626;
+}
+
+.status-safe {
+  background: #16A34A;
+  color: #FFFFFF;
+  border-color: #16A34A;
+}
+
+.status-warn {
+  background: #EAB308;
+  color: #000000;
+  border-color: #CA8A04;
+}
+
+.cascade-downstream-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-left: 10px;
+  border-left: 2px dashed #CCCCCC;
+  margin-top: 4px;
+}
+
+.downstream-node {
+  font-family: var(--font-swiss);
+  font-size: 0.65rem;
+  color: #222222;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.downstream-node .node-sector-tag {
+  font-size: 0.58rem;
+  font-weight: 800;
+  background: #E5E5E5;
+  color: #333333;
+  padding: 1px 4px;
+  text-transform: uppercase;
+  border: 1px solid #CCCCCC;
+}
+
+.cikr-controls-box {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #F0F0F0;
+  border: 2px solid #000000;
+  padding: 10px 12px;
+  margin-top: 8px;
+}
+
+.cikr-ctrl-left {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.cikr-ctrl-heading {
+  font-family: var(--font-swiss);
+  font-size: 0.64rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  color: #000000;
+}
+
+.cikr-switch-label {
+  font-family: var(--font-swiss);
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #111111;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.cikr-switch-label input[type="checkbox"] {
+  accent-color: #000000;
+  width: 14px;
+  height: 14px;
+}
+
+
