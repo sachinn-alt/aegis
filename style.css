@@ -848,10 +848,54 @@ button:active {
    Tactical GIS Overlays & Checkbox Toggles
    ========================================================================== */
 
+/* Universal Visibility Utility */
+.hidden {
+  display: none !important;
+}
+
+.status-chip.offline-chip.hidden {
+  display: none !important;
+}
+
+/* Layer Presets Bar */
+.layer-presets-bar {
+  display: flex;
+  gap: 3px;
+  margin-bottom: 7px;
+  background: #EAEAEA;
+  padding: 2px;
+  border: 1px solid #000000;
+}
+
+.btn-preset {
+  flex: 1;
+  background: transparent;
+  border: none;
+  font-family: var(--font-swiss);
+  font-size: 0.58rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 3px 2px;
+  cursor: pointer;
+  color: #000000;
+  transition: all var(--motion-fast);
+  text-align: center;
+}
+
+.btn-preset:hover {
+  background: #FFFFFF;
+}
+
+.btn-preset.active {
+  background: #000000;
+  color: #FFFFFF;
+}
+
 .layer-toggle-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 5px;
+  gap: 4px;
 }
 
 .tactical-chip {
@@ -873,25 +917,26 @@ button:active {
   display: flex;
   align-items: center;
   gap: 5px;
-  padding: 5px 6px;
+  padding: 4px 6px;
   background: #FFFFFF;
   border: 1.5px solid #000000;
   font-family: var(--font-swiss);
-  font-size: 0.64rem;
-  font-weight: 700;
+  font-size: 0.62rem;
+  font-weight: 800;
   color: #000000;
   text-transform: uppercase;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.02em;
   transition: all var(--motion-fast);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  border-radius: 2px;
 }
 
 .chip-inner i.ti {
   font-size: 0.85rem;
   flex-shrink: 0;
-  color: #000000;
+  color: #555555;
   transition: color var(--motion-fast);
 }
 
@@ -903,11 +948,21 @@ button:active {
   background: #000000;
   color: #FFFFFF;
   border-color: #000000;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
 }
 
-.tactical-chip input:checked ~ .chip-inner i.ti {
-  color: var(--swiss-accent);
-}
+/* Distinct Glowing Tactical Icon Colors when checked */
+.tactical-chip input:checked ~ .chip-inner i.icon-wind { color: #00f0ff !important; }
+.tactical-chip input:checked ~ .chip-inner i.icon-track { color: #ff2a5f !important; }
+.tactical-chip input:checked ~ .chip-inner i.icon-cone { color: #ff9100 !important; }
+.tactical-chip input:checked ~ .chip-inner i.icon-surge { color: #ff3344 !important; }
+.tactical-chip input:checked ~ .chip-inner i.icon-infra { color: #10b981 !important; }
+.tactical-chip input:checked ~ .chip-inner i.icon-gee { color: #00aaff !important; }
+.tactical-chip input:checked ~ .chip-inner i.icon-radar { color: #c084fc !important; }
+.tactical-chip input:checked ~ .chip-inner i.icon-sat { color: #38bdf8 !important; }
+.tactical-chip input:checked ~ .chip-inner i.icon-nasahd { color: #f59e0b !important; }
+.tactical-chip input:checked ~ .chip-inner i.icon-ir { color: #f43f5e !important; }
+.tactical-chip input:checked ~ .chip-inner i.icon-firms { color: #ff4500 !important; }
 
 /* ==========================================================================
    Asset Exposure Micro-List
@@ -1050,34 +1105,72 @@ button:active {
 /* Floating Map Legend */
 .map-legend-overlay {
   position: absolute;
-  bottom: 80px;
+  bottom: 74px;
   left: 14px;
-  z-index: 600;
-  background: #FFFFFF;
+  z-index: 550;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(6px);
   border: 2px solid #000000;
-  padding: 8px 12px;
-  box-shadow: none;
+  padding: 6px 10px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+  transition: all var(--motion-fast);
+}
+
+.legend-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border-bottom: 1px solid #000000;
+  padding-bottom: 3px;
+  margin-bottom: 4px;
 }
 
 .legend-title {
-  font-size: 0.65rem;
+  font-size: 0.62rem;
   font-weight: 900;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.08em;
   color: #000000;
   text-transform: uppercase;
-  margin-bottom: 6px;
-  border-bottom: 1px solid #000000;
-  padding-bottom: 3px;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.btn-legend-toggle {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  color: #000000;
+  font-size: 0.8rem;
+  transition: transform var(--motion-fast);
+}
+
+.map-legend-overlay.collapsed .legend-body {
+  display: none;
+}
+
+.map-legend-overlay.collapsed .legend-header {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.map-legend-overlay.collapsed .btn-legend-toggle i {
+  transform: rotate(180deg);
 }
 
 .legend-row {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.68rem;
-  font-weight: 600;
+  font-size: 0.65rem;
+  font-weight: 700;
   color: #000000;
-  margin-bottom: 3px;
+  margin-bottom: 2px;
   text-transform: uppercase;
 }
 
@@ -1085,13 +1178,14 @@ button:active {
   width: 9px;
   height: 9px;
   border: 1px solid #000000;
+  border-radius: 2px;
   flex-shrink: 0;
 }
 
-.dot-critical { background: var(--swiss-accent); }
-.dot-high { background: #000000; }
-.dot-warning { background: #999999; }
-.dot-safe { background: #FFFFFF; }
+.dot-critical { background: #ff2a5f; box-shadow: 0 0 6px rgba(255, 42, 95, 0.6); }
+.dot-high { background: #ff8400; box-shadow: 0 0 6px rgba(255, 132, 0, 0.6); }
+.dot-warning { background: #f59e0b; box-shadow: 0 0 6px rgba(245, 158, 11, 0.6); }
+.dot-safe { background: #10b981; box-shadow: 0 0 6px rgba(16, 185, 129, 0.6); }
 
 /* Floating Time Scrubber Dock */
 .time-scrubber-dock {
@@ -2085,34 +2179,40 @@ button:active {
   justify-content: center;
   width: 22px;
   height: 22px;
-  border: 2px solid #000000;
-  font-size: 0.7rem;
+  border: 1.5px solid #FFFFFF;
+  border-radius: 3px;
+  font-size: 0.72rem;
   transition: transform var(--motion-fast);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
 }
 
 .tactical-pin:hover {
-  transform: scale(1.25);
-  border-color: #000000;
+  transform: scale(1.35);
+  z-index: 1000 !important;
 }
 
 .tactical-pin.pin-critical {
-  background: var(--swiss-accent);
+  background: #ff2a5f;
   color: #FFFFFF;
+  box-shadow: 0 0 10px rgba(255, 42, 95, 0.85);
 }
 
 .tactical-pin.pin-high {
-  background: #000000;
+  background: #ff8400;
   color: #FFFFFF;
+  box-shadow: 0 0 10px rgba(255, 132, 0, 0.85);
 }
 
 .tactical-pin.pin-warning {
-  background: var(--swiss-muted);
+  background: #f59e0b;
   color: #000000;
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.8);
 }
 
 .tactical-pin.pin-safe {
-  background: #FFFFFF;
-  color: #000000;
+  background: #10b981;
+  color: #FFFFFF;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.8);
 }
 
 /* Leaflet Popup Swiss Overhaul */
