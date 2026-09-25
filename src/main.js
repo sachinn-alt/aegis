@@ -785,6 +785,7 @@ class AegisApp {
       layerSurge: "surge",
       layerWindStreamlines: "windStreamlines",
       layerInfrastructure: "infrastructure",
+      layerHighways: "highways",
       layerGee: "gee",
       layerLiveRadar: "liveRadar",
       layerLiveSatellite: "liveSatellite",

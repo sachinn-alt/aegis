@@ -894,8 +894,8 @@ button:active {
 
 .layer-toggle-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 4px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 3px;
 }
 
 .tactical-chip {
@@ -905,10 +905,6 @@ button:active {
   display: block;
 }
 
-.tactical-chip.full-width {
-  grid-column: span 2;
-}
-
 .tactical-chip input {
   display: none !important;
 }
@@ -916,28 +912,19 @@ button:active {
 .chip-inner {
   display: flex;
   align-items: center;
-  gap: 5px;
-  padding: 4px 6px;
+  justify-content: center;
+  height: 28px;
+  width: 100%;
+  padding: 0;
   background: #FFFFFF;
   border: 1.5px solid #000000;
-  font-family: var(--font-swiss);
-  font-size: 0.62rem;
-  font-weight: 800;
-  color: #000000;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
   transition: all var(--motion-fast);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  border-radius: 2px;
 }
 
 .chip-inner i.ti {
-  font-size: 0.85rem;
-  flex-shrink: 0;
-  color: #555555;
-  transition: color var(--motion-fast);
+  font-size: 1.05rem;
+  color: #404040;
+  transition: all var(--motion-fast);
 }
 
 .tactical-chip:hover .chip-inner {
