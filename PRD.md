@@ -1,9 +1,10 @@
 # Aegis — Product Requirements Document (PRD)
 
 > **Document Status:** Active / Approved Baseline  
-> **Version:** 1.0.0  
+> **Version:** 2.0.0  
 > **Track:** Track 05 — Resilience & Predictive Infrastructure Vulnerability (Code for Communities)  
-> **Target Basins:** India (Bay of Bengal), South Africa (Indian Ocean), Brazil (South Atlantic), China (South China Sea)  
+> **Design Paradigm:** Swiss International Typographic Style (Objective High-Contrast EOC Grammar)  
+> **Target Jurisdiction:** India (Primary — Bay of Bengal & Arabian Sea Coasts) & Sovereign Partner Basins  
 > **Classification:** Sovereign Emergency Operations Center (EOC) Specification  
 
 ---
@@ -11,29 +12,28 @@
 ## 1. Executive Summary & Vision Statement
 
 ### 1.1 Executive Summary
-**Aegis** is an anticipatory early-warning and critical infrastructure vulnerability forecasting platform engineered specifically for coastal territories across BRICS nations. Unlike traditional post-disaster recovery tools or generic weather tracking applications, Aegis fuses **hydrodynamic storm surge physics**, **Google Earth Engine (GEE) Synthetic Aperture Radar (SAR) telemetry**, and **Gemini 3.7 Flash multimodal spatial reasoning** into a unified, zero-latency Emergency Operations Center (EOC) dashboard.
+**Aegis** is an anticipatory early-warning and critical infrastructure vulnerability forecasting platform engineered specifically for sovereign coastal disaster defense. Designed for the **National Disaster Management Authority (NDMA)**, State Disaster Management Authorities (**OSDMA, WB-SDMA, APSDMA, TNDMA, GSDMA**), and coastal Gram Panchayats across India's 7,516 km coastline, Aegis fuses **asymmetric hydrodynamic storm surge physics**, **Google Earth Engine (GEE) Sentinel-1 Synthetic Aperture Radar (SAR) telemetry**, and **Google Gemini 2.5 Flash & Multimodal Vision** into a unified, zero-latency Emergency Operations Center (EOC) platform.
 
-The platform continuously models the projected 72-hour cyclone landfall cone, calculates localized ocean surge inundation using asymmetric hydrodynamic equations, maps interdependencies across critical lifelines (power substations, deep-water ports, medical hubs, evacuation bridges, and drinking water pumping stations), and generates automated, hyper-local multilingual advisories with text-to-speech voice broadcasts.
+The platform continuously models the projected 72-hour cyclone landfall cone, calculates localized ocean surge inundation using asymmetric hydrodynamic equations with planetary Coriolis bias, maps interdependencies across critical lifelines (220kV power substations, deep-water ports, medical hubs, evacuation bridges, and drinking water pumping stations), and generates automated, hyper-local multilingual advisories with text-to-speech voice broadcasts.
 
 ### 1.2 Vision Statement
-> *"To eliminate preventable coastal casualties and prevent catastrophic cascade failures of lifelines across BRICS coastal corridors by shifting the disaster response paradigm from reactive recovery to proactive, physics-grounded anticipatory defense."*
+> *"To eliminate preventable coastal casualties and prevent catastrophic cascade failures of lifelines across Indian and sovereign coastal corridors by shifting the disaster response paradigm from reactive recovery to proactive, physics-grounded anticipatory defense."*
 
 ---
 
 ## 2. Problem Statement & Background
 
-### 2.1 The Coastal Climate Crisis in BRICS Nations
-Over 1.2 billion citizens across BRICS nations reside along high-vulnerability coastline basins:
-- **India (Bay of Bengal):** Odisha and West Bengal face recurring severe cyclonic storms (e.g., Cyclone Dana, Fani, Yaas). High population density, low-lying coastal plains (<3m elevation), and saline mangrove deltas make storm surges exceptionally lethal.
-- **South Africa (South-West Indian Ocean):** Extreme storm systems and unprecedented cut-off lows (e.g., Cyclone Freddy, 2022 Durban Floods) batter KwaZulu-Natal, overwhelming harbor cranes, arterial logistics bridges, and informal settlements.
-- **Brazil (South Atlantic Basin):** Subtropical extratropical cyclones and storm surge anomalies in Rio Grande do Sul (Porto Alegre, Lagoa dos Patos) inundate power grids, water pumping stations, and regional transit networks.
-- **China (South China Sea / Western Pacific):** Super typhoons (e.g., Typhoon Doksuri, Saola) strike high-density industrial coastal corridors in Fujian and Guangdong, threatening critical petrochemical terminals, maritime container ports, and high-speed rail links.
+### 2.1 The Coastal Climate Crisis in India & Coastal Nations
+Over 250 million citizens along India's coastline face recurring severe cyclonic storms:
+- **India (Bay of Bengal):** Odisha and West Bengal (Cyclone Dana, Fani, Yaas) and Andhra Pradesh / Tamil Nadu (Cyclone Michaung). High population density, low-lying coastal plains (<3m elevation), and saline mangrove deltas make storm surges exceptionally lethal.
+- **India (Arabian Sea):** Gujarat, Maharashtra, and Kerala (Cyclone Biparjoy, Tauktae) facing heightened cyclone frequencies and industrial petrochemical port vulnerability.
+- **Global Sovereign Analogs:** South Africa (Durban/KwaZulu-Natal), Brazil (Rio Grande do Sul), and China (South China Sea / Fujian).
 
 ### 2.2 The "72-Hour Anticipatory Action Blind Spot"
 Emergency managers and District Emergency Operations Centers (DEOCs) consistently face three fatal bottlenecks during the pre-landfall window ($T-72\text{h}$ to $T-0\text{h}$):
 1. **Telemetry Without Infrastructure Context:** Meteorological agencies issue track coordinates and wind speeds, but DEOC commanders cannot visualize how that translates to *which specific 220kV substation will be submerged* or *which evacuation bridge will become impassable*.
 2. **Cascading Infrastructure Failures:** Infrastructure assets do not fail in isolation. When a coastal electrical substation floods, hospital backup diesel generators fail to receive fuel shipments due to inundated access roads, resulting in oxygen plant shutdowns and hospital evacuations during the height of the cyclone.
-3. **The Vernacular Last-Mile Barrier:** Evacuation warnings are often broadcast in national languages (English/Hindi/Portuguese) with generic text formats. Illiterate coastal fishing communities, indigenous groups, and rural panchayats miss the critical evacuation window because warnings lack local dialect translations, audio voice broadcasts, or multi-channel delivery (VHF marine radio, SMS, IVR sirens).
+3. **The Vernacular Last-Mile Barrier:** Evacuation warnings are often broadcast in national languages with generic text formats. Rural coastal fishing communities, indigenous groups, and rural panchayats miss the critical evacuation window because warnings lack local dialect translations, audio voice broadcasts, or multi-channel delivery (VHF marine radio, SMS, IVR sirens).
 
 ---
 
@@ -41,18 +41,19 @@ Emergency managers and District Emergency Operations Centers (DEOCs) consistentl
 
 ### 3.1 Primary Product Objectives
 - **Objective 1:** Provide unified, real-time spatial awareness linking hydrodynamic storm surge polygons directly to critical infrastructure asset elevations and status.
-- **Objective 2:** Automate spatial impact analysis using Gemini 3.7 Flash to diagnose cascading lifeline failures and deliver prioritized anticipatory action directives.
-- **Objective 3:** Enable multi-channel vernacular broadcast dispatch across 7 BRICS regional languages with one-click voice alerts.
-- **Objective 4:** Provide automated, exportable executive Situation Reports (SITREPs) ready for Cabinet and military command briefing.
+- **Objective 2:** Automate spatial impact analysis using Google Gemini 2.5 Flash to diagnose cascading lifeline failures and deliver prioritized anticipatory action directives.
+- **Objective 3:** Enable citizen damage photo triage using Google Gemini Multimodal Vision to inspect watermarks and structure damage for swift NDRF rescue unit dispatch.
+- **Objective 4:** Enable multi-channel vernacular broadcast dispatch across Indian coastal languages (**Odia, Bengali, Hindi, English**) with one-click voice alerts.
+- **Objective 5:** Provide automated, exportable executive Situation Reports (SITREPs) ready for NDMA, Cabinet, and military command briefing.
 
 ### 3.2 Key Performance Indicators & Target Metrics
-| Metric ID | Description | Target Baseline | Aegis Target |
-|:---|:---|:---|:---|
-| **KPI-01** | Lead time for infrastructure vulnerability identification | $T-6\text{h}$ (Reactive) | **$T-72\text{h}$ to $T-48\text{h}$ (Anticipatory)** |
-| **KPI-02** | Time required to compile and issue an Executive SITREP | 3 to 5 hours | **< 5 seconds** (Instantaneous) |
-| **KPI-03** | Multi-channel broadcast dispatch latency | 45 minutes | **< 30 seconds** |
-| **KPI-04** | Client-side GIS render frame rate under dense layer load | < 30 FPS | **60 FPS stable** |
-| **KPI-05** | Offline resilience & failover capability | Total crash if cloud drops | **100% operational via embedded physics & heuristic engine** |
+| Metric ID | Description | Target Baseline | Aegis Target | Achieved Metric |
+| :--- | :--- | :---: | :---: | :---: |
+| **KPI-01** | Lead time for infrastructure vulnerability identification | $T-6\text{h}$ (Reactive) | **$T-72\text{h}$ to $T-48\text{h}$** | **$T-72\text{h}$ to $T-24\text{h}$ Anticipatory** |
+| **KPI-02** | Time required to compile and issue an Executive SITREP | 3 to 5 hours | **< 5 seconds** | **< 1 second (Instantaneous)** |
+| **KPI-03** | Multi-channel broadcast dispatch latency | 45 minutes | **< 30 seconds** | **Instantaneous** |
+| **KPI-04** | Client-side GIS render frame rate under dense layer load | < 30 FPS | **60 FPS stable** | **60 FPS verified** |
+| **KPI-05** | Offline resilience & failover capability | Total crash if cloud drops | **100% operational** | **100% via embedded physics & heuristic engine** |
 
 ---
 
@@ -62,7 +63,7 @@ Emergency managers and District Emergency Operations Centers (DEOCs) consistentl
 journey
     title DEOC Commander Pre-Landfall Journey with Aegis
     section T-72h: Ingestion & Baseline
-      Select Basin (Bay of Bengal): 5: DEOC Commander
+      Select Basin (India - Bay of Bengal): 5: DEOC Commander
       Inspect Cyclone Track & Eye Telemetry: 5: DEOC Commander
       View Threatened Asset Network: 4: Infrastructure Lead
     section T-48h: Inundation Modeling
@@ -70,187 +71,98 @@ journey
       Evaluate Asymmetric Surge Polygon: 5: Coastal Engineer
       Detect High-Vulnerability Substations: 4: Power Grid Lead
     section T-24h: AI Synthesis & Directives
-      Trigger Gemini 3.7 Flash Spatial Reasoner: 5: DEOC Commander
+      Trigger Google Gemini 2.5 Flash Spatial Reasoner: 5: DEOC Commander
       Review Cascading Failure Directives: 5: DEOC Commander
+      Inspect Citizen Damage Photos via Gemini Vision: 5: Field Triage Officer
       Dispatch Odia/Bengali Voice Warnings: 5: Field Dispatcher
     section Landfall & T+12h: Response & SITREP
       Monitor Real-Time SAR Flood Extents: 4: GIS Specialist
       Export Official Executive SITREP: 5: DEOC Commander
 ```
 
-### Persona 1: District Collector / DEOC Incident Commander
-- **Role:** Head of District Emergency Operations Center (e.g., Bhadrak & Kendrapara, Odisha).
-- **Core Need:** Instant visual clarity on which sectors must be evacuated, which roads remain open for emergency vehicles, and authoritative summaries for state leadership.
-- **Pain Point:** Overwhelmed by raw weather bulletins and contradictory agency spreadsheets.
-
-### Persona 2: Chief Critical Infrastructure Engineer (Power & Water)
-- **Role:** Operations head for State Grid Corporation or Municipal Water Board.
-- **Core Need:** Exact inundation depth projections at substation switchyards and water pumping intake valves to schedule controlled de-energization and seal floodgates before saltwater arcing.
-- **Pain Point:** Delayed notification leads to burnt transformers requiring 6 months to replace.
-
-### Persona 3: Vernacular Emergency Public Information Officer
-- **Role:** Communications Officer coordinating field alerts and public broadcasts.
-- **Core Need:** Ready-to-broadcast local language advisories (text + voice) for SMS gateways, WhatsApp community channels, marine VHF Ch. 16, and village siren towers.
-- **Pain Point:** Manual translation delays warning dissemination during the crucial pre-landfall window.
-
 ---
 
 ## 5. Functional Requirements (FR)
 
-### FR-01: Multi-Basin & Real-World Historical Scenario Selection
-- **FR-01.1:** The system shall support rapid switching between 4 pre-configured BRICS coastal disaster corridors:
-  1. *India:* Bay of Bengal corridor (Cyclone DANA — Odisha/West Bengal).
-  2. *South Africa:* Indian Ocean corridor (Cyclone FREDDY — KwaZulu-Natal/Durban).
-  3. *Brazil:* South Atlantic corridor (Rio Grande do Sul Extreme Surge — Porto Alegre/Lagoon basin).
-  4. *China:* South China Sea corridor (Typhoon DOKSURI — Fujian/Quanzhou coastal manufacturing hub).
+### FR-01: Multi-Corridor & National Basin Selection
+- **FR-01.1:** Support rapid switching between primary Indian coastal corridors and global comparative analogs:
+  1. *India — Bay of Bengal:* Odisha & West Bengal (Cyclone Dana — Dhamra, Bhadrak, Kendrapara, Digha).
+  2. *India — Eastern Seaboard:* Andhra Pradesh & Tamil Nadu (Cyclone Michaung Analog).
+  3. *India — Arabian Sea:* Gujarat & Saurashtra (Cyclone Biparjoy Analog).
+  4. *South Africa:* Indian Ocean corridor (Cyclone Freddy — Durban/KwaZulu-Natal).
+  5. *Brazil:* South Atlantic corridor (Rio Grande do Sul Extreme Surge).
+  6. *China:* South China Sea corridor (Typhoon Doksuri — Fujian/Quanzhou).
 - **FR-01.2:** Switching basins shall update the map viewport center, zoom level, weather HUD telemetry, infrastructure network, SAR raster overlays, and regional language options without full page reload.
 
-### FR-02: Interactive Tactical GIS Map Viewport
-- **FR-02.1:** The system shall render a full-screen, responsive GIS map utilizing the CartoDB Dark Matter tactical basemap.
-- **FR-02.2:** The map shall support standard zoom, pan, and interactive boundary framing.
-- **FR-02.3:** Map legend overlay shall indicate the 4 standardized emergency risk states:
-  - *Submerged / Failed:* Red Beacon (`#ff2a5f`)
-  - *Critical Alert / Cut Off:* Orange Beacon (`#ff8400`)
-  - *Backup Power / Monitored:* Yellow Warning (`#ffcc00`)
-  - *Fortified / Operational:* Green Safe (`#00ffaa`)
+### FR-02: Interactive Swiss International GIS Map Viewport
+- **FR-02.1:** Render a high-performance, responsive GIS map canvas utilizing Esri Tactical Dark, Light, Satellite, and Topographic basemaps.
+- **FR-02.2:** Support Common Operating Picture (COP) Focus mode that collapses all sidebars with one click to maximize map visibility for command video walls.
+- **FR-02.3:** Map legend overlay indicating standardized emergency risk states: Submerged/Failed (Swiss Red `#FF3000`), Critical/Cut Off, Backup Power/Monitored, and Fortified/Safe.
 
 ### FR-03: Dynamic Storm Physics & Telemetry HUD
 - **FR-03.1:** Display active cyclone name, international category classification, and human-readable corridor designation.
-- **FR-03.2:** Provide real-time HUD telemetry cells displaying:
-  - Central Atmospheric Pressure in hectopascals (hPa).
-  - Maximum Sustained Wind Speed in km/h.
-  - Projected Peak Storm Surge Height in meters above astronomical high tide.
-  - 24-Hour Cumulative Precipitation in millimeters (mm).
-  - Estimated Coastal Population Exposed within the danger radius.
+- **FR-03.2:** Provide real-time HUD telemetry cells displaying: Central Atmospheric Pressure (hPa), Maximum Sustained Wind Speed (km/h), Projected Peak Storm Surge Height (m MHW), 24-Hour Cumulative Precipitation (mm), and Exposed Population.
 
 ### FR-04: Multi-Layer Tactical GIS Overlays
-The system shall feature independent toggle controls for 5 distinct tactical layers:
-1. **Cyclone Track & Eye Radius:** Shows historical track points, forecasted path polyline, and pulsing eye center.
-2. **Wind Swath Cone of Uncertainty:** Visualizes the expanding radial cone of gale-force wind uncertainty.
-3. **Surge Inundation Polygon:** Asymmetric hydrodynamic polygon displaying coastal areas exposed to ocean surge.
-4. **Sentinel-1 SAR Flood Inundation (GEE):** Satellite radar synthetic aperture overlay highlighting inland backwater and riverine inundation.
-5. **Critical Infrastructure Network:** Interactive asset markers color-coded by vulnerability status with detailed tooltips and click popups.
+- **FR-04.1:** Independent toggle controls for storm track & eye marker, wind swath cone of uncertainty, asymmetric hydrodynamic surge inundation polygon, GEE Sentinel-1 SAR flood water-masks, and critical infrastructure lifelines.
+- **FR-04.2:** Support advanced spectral overlays: live Doppler radar simulation, NASA HD composite, thermal infrared cloud tops, FIRMS active thermal anomalies, and GPU-accelerated wind particle streamlines.
 
 ### FR-05: Critical Infrastructure Exposure & Vulnerability Network
-- **FR-05.1:** Model 5 critical asset classes per basin:
-  - High-Voltage Electrical Substations (220kV / 400kV).
-  - Deep-water Cargo & Petroleum Ports.
-  - Regional Medical College & District Referral Hospitals.
-  - Strategic Coastal Arterial Highway Bridges.
-  - Coastal Weather Surveillance Doppler Radar Stations.
-  - High-Capacity Municipal Drinking Water Treatment & Pumping Stations.
+- **FR-05.1:** Model 5 critical asset classes per basin: High-Voltage Electrical Substations (220kV/400kV), Deep-water Cargo & Petroleum Ports, Regional Medical Colleges & District Referral Hospitals, Strategic Coastal Arterial Highway Bridges, and Municipal Drinking Water Treatment Plants.
 - **FR-05.2:** For each asset, model key telemetry attributes: asset name, type, exact latitude/longitude, ground elevation above Mean Sea Level (MSL), design operating capacity, status by simulation step, and impact diagnosis.
 - **FR-05.3:** Automatically compute distance from eye, local wind speed, surge water level, and net inundation depth ($h = \max(0, \text{Surge} - \text{Elevation})$).
 
 ### FR-06: 5-Stage Temporal Simulation & Time Scrubber
-- **FR-06.1:** Support 5 distinct temporal analysis steps:
-  1. $T-72\text{h}$ (72 Hours Before Landfall — Deep Depression / Alert Phase)
-  2. $T-48\text{h}$ (48 Hours Before Landfall — Evacuation Window)
-  3. $T-24\text{h}$ (24 Hours Before Landfall — Islanding & Defense Phase)
-  4. $\text{Landfall}$ (Peak Landfall Window — Curfew & Active Impact)
-  5. $T+12\text{h}$ (12 Hours Post-Landfall — Damage Assessment & Restoration)
-- **FR-06.2:** Provide an interactive slider and clickable state badges for timeline navigation.
-- **FR-06.3:** Include an **Auto-Simulate Play/Pause** playback controller that automatically advances the timeline every 2.4 seconds with cyclic loop support.
+- **FR-06.1:** Support 5 distinct temporal analysis steps: $T-72\text{h}$ (Deep Depression), $T-48\text{h}$ (Evacuation Window), $T-24\text{h}$ (Islanding & Defense), $\text{Landfall}$ (Active Peak Impact), and $T+12\text{h}$ (Damage Assessment).
+- **FR-06.2:** Provide an interactive slider, clickable step markers, and an **Auto-Simulate Play/Pause** playback controller with cyclic loop support.
 
-### FR-07: Gemini 3.7 Flash Multimodal Spatial Reasoning Engine
-- **FR-07.1:** Integrate Google Gemini 3.7 Flash / Gemini 2.0 Flash via REST API for deep multimodal spatial reasoning.
-- **FR-07.2:** Synthesize input parameters: active basin, storm dynamics, satellite feed state, and list of exposed infrastructure assets into a structured prompt.
-- **FR-07.3:** Deliver a 3-part spatial vulnerability synthesis:
-  1. *Cascading Infrastructure Failure Pathways* (interdependent network breakdowns).
+### FR-07: Google Gemini 2.5 Flash Spatial Reasoning & Multimodal Vision
+- **FR-07.1:** Integrate Google Gemini 2.5 Flash (`gemini-2.5-flash`) via Google AI Studio / Vertex AI REST API for deep spatial reasoning, delivering:
+  1. *Cascading Infrastructure Failure Pathways* (interdependent grid and hospital breakdowns).
   2. *Anticipatory Action Directives* (prioritized 3-step EOC orders before landfall).
   3. *Parametric Insurance & Emergency Liquidity Trigger* (automated loss estimation and contingency fund trigger).
-- **FR-07.4:** Provide a zero-latency, high-fidelity offline heuristic reasoner when no cloud API key is configured or during network outages.
+- **FR-07.2:** **Gemini Multimodal Vision Triage:** Ingest citizen and field distress photos to classify structural damage severity, estimate flood watermarks, calculate Life-Safety Hazard Index, and recommend NDRF first-responder units.
+- **FR-07.3:** Provide a zero-latency, high-fidelity offline heuristic reasoner when no cloud API key is configured or during network outages.
 
 ### FR-08: Multilingual Early-Warning Advisory & Voice Dispatcher
-- **FR-08.1:** Support automated advisory localization in 7 languages:
-  - *India:* Odia (`or-IN`), Bengali (`bn-IN`), Hindi (`hi-IN`), English (`en-IN`).
-  - *South Africa:* isiZulu (`zu-ZA`), English (`en-ZA`).
-  - *Brazil:* Portuguese (`pt-BR`).
-  - *China:* Mandarin Chinese (`zh-CN`).
+- **FR-08.1:** Support automated advisory localization in Indian coastal languages (**Odia, Bengali, Hindi, English**) and global comparative locales.
 - **FR-08.2:** Provide a Web Speech API audio synthesis controller (`Play Voice Warning`) with real-time animated audio equalizer bars.
-- **FR-08.3:** Display real-time multi-channel delivery metrics: SMS Broadcast Count, Marine VHF Radio channel status, and automated Panchayat IVR/Siren activation.
+- **FR-08.3:** Display real-time multi-channel delivery metrics: 3GPP TS 23.041 Sachet Cell Broadcast, Marine VHF Ch. 16, and automated Panchayat IVR/Siren activation.
 
 ### FR-09: Executive Situation Report (SITREP) Generator
 - **FR-09.1:** Generate an official, military/government-formatted Situation Report (SITREP) Bulletin with one click.
 - **FR-09.2:** Include meteorological snapshot, complete critical asset exposure matrix with status diagnosis, Gemini spatial reasoning synthesis, and mobilization directives.
-- **FR-09.3:** Support instant client-side download as a standard `.txt` executive briefing document.
+- **FR-09.3:** Support instant client-side download as a standard executive briefing document.
 
-### FR-10: Gemini API Key Management
-- **FR-10.1:** Provide an in-app modal dialog enabling users to input and store their Google Gemini API key securely in browser `localStorage`.
-- **FR-10.2:** Provide clear indicator showing whether live Gemini Cloud or embedded offline reasoning is active.
+### FR-10: CIKR Public-Private Infrastructure Continuity Bridge
+- **FR-10.1:** Map cross-sector stakeholder alignment across public emergency authorities and private utility operators.
+- **FR-10.2:** Model live cascading domino failure chains from power substation flooding to port crane paralysis and hospital ICU fuel starvation.
+- **FR-10.3:** Support interactive mitigation toggles (Microgrid Islanding, Inflatable Flood Barriers) and export ISO 22301 Business Continuity briefs.
 
 ### FR-11: National Systems & Global Interoperability Gateway
-- **FR-11.1:** Support universal international scaling beyond BRICS to arbitrary global coastal territories (e.g. Philippines, United States, Mozambique, SIDS, and user-defined territories).
-- **FR-11.2:** Generate fully validated **ITU-T X.1303 / OASIS CAP v1.2** XML and JSON public alerting feeds for direct integration into national alerting gateways (FEMA IPAWS, NDMA Sachet, Defesa Civil Alerta, EU-Alert, etc.).
-- **FR-11.3:** Map native emergency telecommunications infrastructure across **Cell Broadcast (3GPP TS 23.041)**, Marine VHF (Ch. 16 distress & NAVTEX 518 kHz), public emergency hotlines (112, 911, 119), and national spatial datums.
-- **FR-11.4:** Provide an adaptive network profile that senses connection quality and offers a **Tactical Low-Bandwidth / Satcom Mode** generating compact `<1.2 KB` telemetry packets for HF Packet Radio (Winlink/APRS) and satellite Short Burst Data (SBD).
-- **FR-11.5:** Allow operators in any country to import and immediately project custom country GeoJSON FeatureCollections or scenario schemas.
+- **FR-11.1:** Generate fully validated **ITU-T X.1303 / OASIS CAP v1.2** XML and JSON public alerting feeds for direct integration into national alerting gateways (**NDMA Sachet**).
+- **FR-11.2:** Map native emergency telecommunications infrastructure across **Cell Broadcast (3GPP TS 23.041)**, Marine VHF (Ch. 16 distress & NAVTEX 518 kHz), public emergency hotlines (112, 1077, 1554), and national spatial datums.
+- **FR-11.3:** Provide a **Tactical Low-Bandwidth / Satcom Mode** generating compact `<1.2 KB` telemetry packets for 300-baud HF Packet Radio (Winlink/APRS), Marine SSB, or LoRaWAN mesh nodes.
+
+### FR-12: CAD Incident Triage & NIMS Resource Tracking
+- **FR-12.1:** Ingest distress calls from CAD 112, VHF Marine Ch. 16, and Panchayat beacons.
+- **FR-12.2:** Compute dynamic urgency scores factoring in NIMS priority weight, exposed lives, surge depth anomaly, and queuing duration with 400m spatial deduplication.
+- **FR-12.3:** Track standardized NIMS Kind & Type resource fleets (Swift-Water Rescue Boats Type 1-4, High-Capacity De-watering Pumps, Mobile Industrial Gensets, Air Ambulances).
+- **FR-12.4:** Maintain an automated, SHA-256 verified Inter-Agency Activity Log compliant with FEMA/NDMA ICS Form 214.
 
 ---
 
 ## 6. Non-Functional Requirements (NFR)
 
 ### 6.1 Performance & Latency
-- **NFR-01:** Initial page load time must not exceed 1.5 seconds on a standard 4G mobile broadband connection.
-- **NFR-02:** Time step scrubber updates (recomputing geometry, recalculating asset vulnerability, and re-rendering SVG markers) must complete in under 50ms.
-- **NFR-03:** Live Gemini API calls shall feature an automatic timeout threshold of 12 seconds with seamless fallback to embedded heuristic spatial reasoning.
+- **NFR-01:** Initial page load time must not exceed 1.5 seconds on standard mobile broadband.
+- **NFR-02:** Time step scrubber updates must complete in under 50ms with 60 FPS stable rendering.
+- **NFR-03:** Live Gemini API calls shall feature an automatic timeout threshold with seamless fallback to embedded spatial reasoning.
 
-### 6.2 Ergonomics & Visual Design
-- **NFR-04:** The UI must adhere strictly to **Tactical EOC Dark Glassmorphism** design standards to prevent eye fatigue during continuous 24-hour command shifts.
-- **NFR-05:** Visual hierarchy must use high-visibility tactical accents (Cyan `#00f0ff`, Amber `#ff8400`, Red `#ff2a5f`, Neon Green `#00ffaa`) against low-reflectance dark slate (`#070a12`).
-
-### 6.3 Security, Privacy & Data Sovereignty
-- **NFR-06:** Zero telemetry or user location data shall be sent to external tracking servers.
-- **NFR-07:** Gemini API keys must remain strictly within the client browser's `localStorage` and never be proxied or logged to intermediate servers.
-
-### 6.4 Accessibility & Internationalization
-- **NFR-08:** All interactive elements must provide distinct `aria-label` attributes, keyboard focus states, and semantic HTML5 structuring.
-- **NFR-09:** Text contrast ratios must meet or exceed WCAG 2.1 Level AA standards (minimum 4.5:1 for normal text).
-- **NFR-10:** Vernacular scripts (Odia, Bengali, Devanagari, Hanzi, Tagalog, Portuguese) must render with native font ligatures and zero text clipping.
-
----
-
-## 7. Compliance & Standards Alignment
-
-| Standard / Framework | Description | Aegis Implementation |
-|:---|:---|:---|
-| **OASIS CAP v1.2 / ITU-T X.1303** | Universal Common Alerting Protocol for disaster warning | Direct export of XML/JSON CAP alerts for national alerting gateways |
-| **3GPP TS 23.041** | Technical realization of Cell Broadcast Service (CBS) | Channel mapping for public warning (Channels 4370, 919) |
-| **IMO GMDSS / NAVTEX** | Global Maritime Distress and Safety System | Marine VHF Ch. 16 and NAVTEX 518/490 kHz broadcast data |
-| **Sendai Framework (2015–2030)** | Priority 4: Enhancing disaster preparedness for effective response | Direct anticipation of infrastructure failure before landfall |
-| **UN Early Warnings for All (EW4All)** | Universal early warning coverage by 2027 | Multi-channel SMS, VHF, and voice alerts in indigenous languages |
-| **OGC Standards (WGS 84 / GeoJSON)** | Open Geospatial Consortium coordinate representation | Decimal degrees coordinates for all eye points, assets, and GeoJSON ingestion |
-
----
-
-## 8. Out of Scope & Product Roadmap
-
-```
-+-------------------------------------------------------------------------------+
-| AEGIS RELEASE ROADMAP                                                         |
-+-------------------------------------------------------------------------------+
-| [v1.0 - Current Release]                                                      |
-| - 4 BRICS coastal basins (India, South Africa, Brazil, China)                 |
-| - Leaflet tactical GIS with asymmetric storm surge polygons                   |
-| - Synthetic GEE Sentinel-1 SAR flood raster overlays                          |
-| - Gemini 3.7 Flash spatial reasoning (Live + Offline Dual-Mode)               |
-| - Multilingual voice synthesis (7 languages) + SITREP generator               |
-+-------------------------------------------------------------------------------+
-                                      |
-                                      v
-+-------------------------------------------------------------------------------+
-| [v2.0 - Target Q4 2026]                                                       |
-| - Direct Earth Engine Python API backend connector for real-time SAR pulls    |
-| - Drone photogrammetry & post-landfall high-res damage bounding boxes         |
-| - LoRaWAN mesh ground-sensor telemetry (river gauge & tide gauges)            |
-| - Crowd-sourced citizen lifeline outage verification via WhatsApp bot         |
-+-------------------------------------------------------------------------------+
-                                      |
-                                      v
-+-------------------------------------------------------------------------------+
-| [v3.0 - Target 2027]                                                          |
-| - Automated SCADA micro-grid islanding triggers for electrical substations    |
-| - Smart-contract parametric disaster insurance payout automation              |
-| - Multi-agent autonomous drone swarm dispatch for corridor inspection         |
-+-------------------------------------------------------------------------------+
-```
+### 6.2 Visual Ergonomics & Swiss International Aesthetic
+- **NFR-04:** The UI must adhere strictly to **Swiss International Typographic Style (Bauhaus / Objective Swiss Grammar)**:
+  - 0px border radius across all controls (`--radius-none: 0px !important`).
+  - Strict high-contrast quad-tone palette: Pure White (`#FFFFFF`), Pure Black (`#000000`), Structural Gray (`#F2F2F2`), and Swiss Red (`#FF3000`).
+  - 24x24px visible architectural grid lines and 2px/4px solid black dividing borders.
+  - Zero decorative drop shadows; visual depth generated purely through geometric pattern layers.
+- **NFR-05:** Photometric contrast must exceed WCAG 2.1 AAA standard (**21.0:1** for primary typography) to ensure flawless legibility on central EOC video wall projectors.
