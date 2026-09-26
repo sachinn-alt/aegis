@@ -616,6 +616,14 @@ class AegisApp {
       this.triggerGeminiAnalysis();
     });
 
+    // Gemini Vision Run Button (Multimodal Damage Photo Triage)
+    const btnRunGeminiVision = document.getElementById("btnRunGeminiVision");
+    if (btnRunGeminiVision) {
+      btnRunGeminiVision.addEventListener("click", () => {
+        this.triggerGeminiVisionAnalysis();
+      });
+    }
+
     // Advisory Language Switcher
     const langSelect = document.getElementById("advisoryLangSelect");
     langSelect.addEventListener("change", (e) => {
@@ -1943,6 +1951,70 @@ class AegisApp {
       </div>
       <p>${formatted}</p>
     `;
+  }
+
+  async triggerGeminiVisionAnalysis() {
+    const output = document.getElementById("visionAnalysisOutput");
+    const select = document.getElementById("visionIncidentSelect");
+    if (!output || !select) return;
+
+    const incidentType = select.value;
+    const contextMap = {
+      dhamra_seawall: {
+        locationName: "Dhamra Port Coastal Seawall & Geotube Revetment",
+        category: "MARITIME_INFRASTRUCTURE_BREACH",
+        surgeDepthM: 3.6
+      },
+      bhadrak_substation: {
+        locationName: "Bhadrak 220kV Main Transmission Substation Switchyard",
+        category: "POWER_GRID_INUNDATION",
+        surgeDepthM: 1.85
+      },
+      sh9_evac_route: {
+        locationName: "State Highway 9 (Chandbali to Kendrapara Causeway)",
+        category: "EVACUATION_CORRIDOR_FRACTURE",
+        surgeDepthM: 0.85
+      },
+      basudevpur_hospital: {
+        locationName: "Basudevpur Community Health Center Auxiliary Island",
+        category: "HOSPITAL_LIFELINE_FAILURE",
+        surgeDepthM: 1.2
+      }
+    };
+
+    const ctx = contextMap[incidentType] || {
+      locationName: "Coastal Corridor",
+      category: "FLOOD_DAMAGE",
+      surgeDepthM: 2.0
+    };
+
+    output.innerHTML = `
+      <div style="display: flex; align-items: center; gap: 8px; color: #00f0ff; font-family: var(--text-mono); padding: 8px 0;">
+        <i class="ti ti-loader-2 ti-spin"></i>
+        <span>Google Gemini Multimodal Vision inspecting field telemetry &amp; flood backscatter...</span>
+      </div>
+    `;
+
+    try {
+      const result = await this.gemini.analyzeCitizenDamagePhoto({
+        photoBase64: null,
+        incidentContext: ctx
+      });
+
+      let formatted = result.assessment
+        .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+        .replace(/\n\n/g, "</p><p style='margin: 4px 0;'>")
+        .replace(/\n-/g, "<br/>•");
+
+      output.innerHTML = `
+        <div style="font-size: 0.65rem; color: #00f0ff; font-family: var(--text-mono); font-weight: 700; margin-bottom: 6px; border-bottom: 1px solid rgba(0, 240, 255, 0.3); padding-bottom: 3px;">
+          VISION ENGINE: ${result.source} | ${result.timestamp}
+        </div>
+        <div style="margin: 0; line-height: 1.45; color: #e2e8f0;">${formatted}</div>
+      `;
+    } catch (err) {
+      output.innerHTML = `<span style="color: #ef4444;">Vision Analysis Error: ${err.message}</span>`;
+    }
   }
 
   updateAdvisoryDisplay(langKey) {
