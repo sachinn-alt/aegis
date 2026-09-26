@@ -3124,4 +3124,32 @@ body.theme-high-contrast .spec-value {
   height: 14px;
 }
 
+/* Sovereign & State Border Telemetry Tooltips & Icons */
+.tactical-tooltip {
+  background: #FFFFFF !important;
+  color: #000000 !important;
+  border: 2px solid #000000 !important;
+  border-radius: 0px !important;
+  font-family: var(--font-swiss) !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  padding: 4px 8px !important;
+  box-shadow: none !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.04em !important;
+}
+
+.tactical-tooltip::before {
+  border-top-color: #000000 !important;
+}
+
+.icon-flag {
+  color: #000000;
+}
+
+.icon-border {
+  color: #000000;
+}
+
+
 

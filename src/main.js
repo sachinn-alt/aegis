@@ -16,6 +16,7 @@ import { InterAgencyLogger } from "./engine/interagency_log.js";
 import { LiveStreamEngine } from "./engine/live_stream.js";
 import { CikrBridgeEngine } from "./engine/cikr_bridge.js";
 import { TacticalOverlaysEngine } from "./engine/tactical_overlays.js";
+import { INDIA_SOVEREIGN_BORDER, INDIA_STATE_BOUNDARIES, NEIGHBORING_MARITIME_LINES } from "./data/india_sovereign_boundaries.js";
 
 class AegisApp {
   constructor() {
@@ -31,6 +32,8 @@ class AegisApp {
     this.liveAlertTimer = null;
 
     this.activeLayers = {
+      sovereignBorders: true,
+      stateBorders: true,
       liveRadar: false,
       liveSatellite: false,
       nasaHd: false,
@@ -112,6 +115,8 @@ class AegisApp {
       infraredOverlay: null,
       firmsOverlay: null,
       windCanvasLayer: null,
+      sovereignBordersGroup: L.layerGroup(),
+      stateBordersGroup: L.layerGroup(),
       highwaysGroup: L.layerGroup(),
       infraGroup: L.layerGroup(),
       evacZonesGroup: L.layerGroup(),
@@ -517,6 +522,8 @@ class AegisApp {
     // Initialize Default Basemap (Tactical Dark)
     this.switchBasemap(this.currentBasemap);
 
+    this.mapLayers.sovereignBordersGroup.addTo(this.map);
+    this.mapLayers.stateBordersGroup.addTo(this.map);
     this.mapLayers.evacZonesGroup.addTo(this.map);
     this.mapLayers.bathymetryGroup.addTo(this.map);
     this.mapLayers.gridTransmissionGroup.addTo(this.map);
@@ -562,6 +569,8 @@ class AegisApp {
 
     // Unified Layer Checkbox Event Listeners
     const layerConfigs = [
+      ["layerSovereignBorders", "sovereignBorders", () => this.renderSovereignBorders()],
+      ["layerStateBorders", "stateBorders", () => this.renderStateBorders()],
       ["layerTrack", "track", () => this.renderTrack()],
       ["layerCone", "cone", () => this.renderCone()],
       ["layerSurge", "surge", () => this.renderSurge()],
@@ -869,6 +878,8 @@ class AegisApp {
 
   syncLayerCheckboxUI() {
     const mapping = {
+      layerSovereignBorders: "sovereignBorders",
+      layerStateBorders: "stateBorders",
       layerTrack: "track",
       layerCone: "cone",
       layerSurge: "surge",
@@ -894,6 +905,8 @@ class AegisApp {
 
   applyLayerPreset(preset) {
     if (preset === "hazards") {
+      this.activeLayers.sovereignBorders = true;
+      this.activeLayers.stateBorders = true;
       this.activeLayers.track = true;
       this.activeLayers.surge = true;
       this.activeLayers.cone = true;
@@ -911,6 +924,8 @@ class AegisApp {
       this.activeLayers.infrared = false;
       this.activeLayers.firms = false;
     } else if (preset === "satellite") {
+      this.activeLayers.sovereignBorders = true;
+      this.activeLayers.stateBorders = true;
       this.activeLayers.track = true;
       this.activeLayers.surge = false;
       this.activeLayers.cone = false;
@@ -931,6 +946,7 @@ class AegisApp {
       Object.keys(this.activeLayers).forEach(k => this.activeLayers[k] = true);
     } else if (preset === "clear") {
       Object.keys(this.activeLayers).forEach(k => this.activeLayers[k] = false);
+      this.activeLayers.sovereignBorders = true;
       this.activeLayers.track = true;
     }
 
@@ -939,6 +955,8 @@ class AegisApp {
   }
 
   renderAllMapLayers() {
+    this.renderSovereignBorders();
+    this.renderStateBorders();
     this.renderTrack();
     this.renderCone();
     this.renderSurge();
@@ -1046,6 +1064,8 @@ class AegisApp {
     document.getElementById("valRain").textContent = step.rainfallForecastMm24h;
 
     // Render Map Layers
+    this.renderSovereignBorders();
+    this.renderStateBorders();
     this.renderTrack();
     this.renderCone();
     this.renderSurge();
@@ -1339,6 +1359,96 @@ class AegisApp {
           };
         }
       });
+    });
+  }
+
+  // Sovereign National Boundary of India (Survey of India Compliant · Integral Jammu & Kashmir and Ladakh)
+  renderSovereignBorders() {
+    this.mapLayers.sovereignBordersGroup.clearLayers();
+    if (!this.activeLayers.sovereignBorders) return;
+
+    // 1. Outer Dark High-Contrast Casing
+    L.polyline(INDIA_SOVEREIGN_BORDER, {
+      color: "#000000",
+      weight: 6,
+      opacity: 0.9,
+      lineCap: "round",
+      lineJoin: "round"
+    }).addTo(this.mapLayers.sovereignBordersGroup);
+
+    // 2. Luminous Tactical Sovereign Border (High-Contrast Cyan on Dark Basemaps)
+    const sovereignPolyline = L.polyline(INDIA_SOVEREIGN_BORDER, {
+      color: "#00f0ff",
+      weight: 2.8,
+      opacity: 1.0,
+      lineCap: "round",
+      lineJoin: "round"
+    }).addTo(this.mapLayers.sovereignBordersGroup);
+
+    // 3. Subtle Sovereign Territorial Fill
+    L.polygon(INDIA_SOVEREIGN_BORDER, {
+      color: "transparent",
+      fillColor: "#00f0ff",
+      fillOpacity: 0.02,
+      interactive: false
+    }).addTo(this.mapLayers.sovereignBordersGroup);
+
+    // Interactive Sovereign Popup
+    sovereignPolyline.bindPopup(`
+      <div style="font-family: var(--font-swiss); font-size: 12px; color: #000000; min-width: 290px;">
+        <div style="font-size: 10px; font-weight: 900; color: #00f0ff; letter-spacing: 0.08em; margin-bottom: 2px;">
+          <i class="ti ti-flag"></i> SOVEREIGN TERRITORIAL BOUNDARY
+        </div>
+        <strong style="font-size: 14px; font-weight: 900; color: #000000;">REPUBLIC OF INDIA (BHARAT)</strong><br/>
+        <div style="margin: 4px 0;">
+          <span style="display:inline-block; padding: 2px 6px; font-weight: 900; background: #000000; color: #00f0ff; font-size: 10px; font-family: var(--text-mono);">
+            SURVEY OF INDIA COMPLIANT · INTEGRAL J&amp;K &amp; LADAKH
+          </span>
+        </div>
+        <p style="margin-top: 6px; font-size: 11px; color: #262626; line-height: 1.4; border-top: 1px solid #000000; padding-top: 4px;">
+          Depicts the entire, inalienable sovereign territory of India including the complete Union Territories of <strong>Jammu &amp; Kashmir and Ladakh</strong>, Aksai Chin, and the complete North-Eastern McMahon frontier.
+        </p>
+      </div>
+    `);
+
+    // 4. Neighboring International Maritime Boundary Lines (e.g. IMBL in Palk Strait)
+    NEIGHBORING_MARITIME_LINES.forEach(line => {
+      L.polyline(line.coords, {
+        color: "#ff8400",
+        weight: 2,
+        dashArray: "4, 6",
+        opacity: 0.8
+      }).bindTooltip(line.name, { sticky: true, className: "tactical-tooltip" })
+        .addTo(this.mapLayers.sovereignBordersGroup);
+    });
+  }
+
+  // Interstate & Coastal Administrative Boundaries (High-Contrast Tactical Delineation)
+  renderStateBorders() {
+    this.mapLayers.stateBordersGroup.clearLayers();
+    if (!this.activeLayers.stateBorders) return;
+
+    INDIA_STATE_BOUNDARIES.forEach(sb => {
+      // Underlay for maximum legibility in dark theme
+      L.polyline(sb.coords, {
+        color: "#000000",
+        weight: 4.5,
+        opacity: 0.75
+      }).addTo(this.mapLayers.stateBordersGroup);
+
+      // Crisp high-contrast dashed interstate border
+      const p = L.polyline(sb.coords, {
+        color: "#FFFFFF",
+        weight: 1.8,
+        dashArray: "5, 5",
+        opacity: 0.9
+      }).addTo(this.mapLayers.stateBordersGroup);
+
+      p.bindTooltip(`
+        <div style="font-family: var(--font-swiss); font-size: 11px; font-weight: 700; color: #000000;">
+          <i class="ti ti-border-all"></i> ${sb.name}
+        </div>
+      `, { sticky: true, className: "tactical-tooltip" });
     });
   }
 
